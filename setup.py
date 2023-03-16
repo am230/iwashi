@@ -13,7 +13,7 @@ setup(
     keywords=("generator"),
     description="Link Tree Generator",
     long_description=long_description,
-    requires=["Flask", "pytohtml", "py2js", "bs4", "yt-dlp"],
+    install_requires=["Flask", "pytohtml", "py2js", "bs4", "yt-dlp"],
     license="MIT Licence",
     long_description_content_type='text/x-rst',
     packages=find_packages(),
