@@ -1,14 +1,18 @@
 import re
+from typing import List, TypedDict
 
 import requests
+from loguru import logger
 
+from ..helper import BASE_HEADERS, HTTP_REGEX
 from ..visitor import Context, SiteVisitor
-from ..helper import HTTP_REGEX
 
 
 class Twitch(SiteVisitor):
-    NAME = 'Twitch'
-    URL_REGEX: re.Pattern = re.compile(HTTP_REGEX + r'twitch.tv/(?P<id>\w+)', re.IGNORECASE)
+    NAME = "Twitch"
+    URL_REGEX: re.Pattern = re.compile(
+        HTTP_REGEX + r"twitch\.tv/(?P<id>\w+)", re.IGNORECASE
+    )
 
     def normalize(self, url: str) -> str:
         match = self.URL_REGEX.match(url)
@@ -17,46 +21,50 @@ class Twitch(SiteVisitor):
         return f'https://www.twitch.tv/{match.group("id")}'
 
     def visit(self, url, context: Context, id: str):
-        url = f'https://www.twitch.tv/{id}'
+        url = f"https://www.twitch.tv/{id}"
 
-        res = requests.get(url)
-        match = re.search(r'clientId ?= ?"(?P<token>kimne78kx3ncx6brgo4mv6wki5h1ko)"', res.text)
+        res = requests.get(url, headers=BASE_HEADERS)
+        match = re.search(
+            r'clientId ?= ?"(?P<token>kimne78kx3ncx6brgo4mv6wki5h1ko)"', res.text
+        )
         if match is None:
-            print(f'[Twitch] Could not find token for {url}')
+            logger.warning(f"[Twitch] Could not find token for {url}")
             return
-        token = match.group('token')
+        token = match.group("token")
 
-        res = requests.post('https://gql.twitch.tv/gql', json=[
-            {
-                "operationName": "ChannelRoot_AboutPanel",
-                "variables": {
-                    "channelLogin": id,
-                    "skipSchedule": True
-                },
-                "extensions": {
-                    "persistedQuery": {
-                        "version": 1,
-                        "sha256Hash": "6089531acef6c09ece01b440c41978f4c8dc60cb4fa0124c9a9d3f896709b6c6"
-                    }
+        res = requests.post(
+            "https://gql.twitch.tv/gql",
+            json=[
+                {
+                    "operationName": "ChannelRoot_AboutPanel",
+                    "variables": {"channelLogin": id, "skipSchedule": True},
+                    "extensions": {
+                        "persistedQuery": {
+                            "version": 1,
+                            "sha256Hash": "6089531acef6c09ece01b440c41978f4c8dc60cb4fa0124c9a9d3f896709b6c6",
+                        }
+                    },
                 }
-            }
-        ], headers={
-            'Client-Id': token,
-        })
-
-        info: Root = res.json()
-        info
+            ],
+            headers=BASE_HEADERS
+            | {
+                "Client-Id": token,
+            },
+        )
 
         info: Root = res.json()
         user = info[0]["data"]["user"]
-        context.create_result('Twitch', url=url, name=user["displayName"], score=1.0, description=user["description"], profile_picture=user['profileImageURL'])
+        context.create_result(
+            "Twitch",
+            url=url,
+            name=user["displayName"],
+            score=1.0,
+            description=user["description"],
+            profile_picture=user["profileImageURL"],
+        )
 
-        for link in user['channel']["socialMedias"]:
+        for link in user["channel"]["socialMedias"]:
             context.visit(link["url"])
-
-from typing import List
-
-from typing_extensions import TypedDict
 
 
 class Followers(TypedDict):

@@ -1,18 +1,19 @@
 import json
 import re
-from typing import List, Optional, Union
+from typing import List, Optional, TypedDict, Union
 
 import bs4
 import requests
-from typing_extensions import TypedDict
 
+from ..helper import BASE_HEADERS, HTTP_REGEX
 from ..visitor import Context, SiteVisitor
-from ..helper import HTTP_REGEX
 
 
 class Linktree(SiteVisitor):
-    NAME = 'Linktree'
-    URL_REGEX: re.Pattern = re.compile(HTTP_REGEX + r'linktr\.ee/(?P<id>\w+)', re.IGNORECASE)
+    NAME = "Linktree"
+    URL_REGEX: re.Pattern = re.compile(
+        HTTP_REGEX + r"linktr\.ee/(?P<id>\w+)", re.IGNORECASE
+    )
 
     def normalize(self, url: str) -> str:
         match = self.URL_REGEX.match(url)
@@ -21,20 +22,26 @@ class Linktree(SiteVisitor):
         return f'https://linktr.ee/{match.group("id")}'
 
     def visit(self, url, context: Context, id: str):
-        res = requests.get(f'https://linktr.ee/{id}')
+        res = requests.get(f"https://linktr.ee/{id}", headers=BASE_HEADERS)
         if res.status_code != 200:
             return None
-        soup = bs4.BeautifulSoup(res.text, 'html.parser')
-        data_element = soup.find(attrs={'id': '__NEXT_DATA__'})
+        soup = bs4.BeautifulSoup(res.text, "html.parser")
+        data_element = soup.find(attrs={"id": "__NEXT_DATA__"})
         assert data_element
         data: Root = json.loads(data_element.get_text())
-        info = data['props']['pageProps']
-        context.create_result('Linktree', url=url, score=1.0, description=info['description'], profile_picture=info['profilePictureUrl'])
-        links = info['links']
+        info = data["props"]["pageProps"]
+        context.create_result(
+            "Linktree",
+            url=url,
+            score=1.0,
+            description=info["description"],
+            profile_picture=info["profilePictureUrl"],
+        )
+        links = info["links"]
         for link in links:
-            if not link['url']:
+            if not link["url"]:
                 continue
-            context.visit(link['url'])
+            context.visit(link["url"])
 
 
 class Owner(TypedDict):

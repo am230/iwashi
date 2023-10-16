@@ -1,18 +1,19 @@
 import json
 import re
-from typing import Dict, List, Optional, TypeAlias
+from typing import Dict, List, Optional, TypeAlias, TypedDict
 
 import bs4
 import requests
-from typing_extensions import TypedDict
 
+from ..helper import BASE_HEADERS, HTTP_REGEX
 from ..visitor import Context, SiteVisitor
-from ..helper import HTTP_REGEX
 
 
 class Pixiv(SiteVisitor):
-    NAME = 'Pixiv'
-    URL_REGEX: re.Pattern = re.compile(HTTP_REGEX + r'pixiv.net/users/(?P<id>\d+)', re.IGNORECASE)
+    NAME = "Pixiv"
+    URL_REGEX: re.Pattern = re.compile(
+        HTTP_REGEX + r"pixiv\.net/users/(?P<id>\d+)", re.IGNORECASE
+    )
 
     def normalize(self, url: str) -> str:
         match = self.URL_REGEX.match(url)
@@ -21,23 +22,37 @@ class Pixiv(SiteVisitor):
         return f'https://pixiv.net/users/{match.group("id")}'
 
     def visit(self, url, context: Context, id: str):
-        res = requests.get(f'https://pixiv.net/users/{id}')
-        soup = bs4.BeautifulSoup(res.text, 'html.parser')
-        meta_element: bs4.Tag = soup.find('meta', attrs={'name': 'preload-data', 'id': 'meta-preload-data'})  # type: ignore
-        info: Root = json.loads(meta_element.attrs['content'])
+        res = requests.get(f"https://pixiv.net/users/{id}", headers=BASE_HEADERS)
+        soup = bs4.BeautifulSoup(res.text, "html.parser")
+        meta_element: bs4.Tag = soup.find("meta", attrs={"name": "preload-data", "id": "meta-preload-data"})  # type: ignore
+        info: Root = json.loads(meta_element.attrs["content"])
 
-        if len(info['user'].values()) > 1:
-            print(f'[Pixiv] User is must be unique: {id}')
+        if len(info["user"].values()) > 1:
+            print(f"[Pixiv] User is must be unique: {id}")
             return
 
-        for user in info['user'].values():
-            context.create_result('Pixiv', url=url, name=user['name'], score=1.0, description=user['comment'], profile_picture=user['imageBig'])
-            if 'webpage' in user and user['webpage'] is not None:
-                context.visit(user['webpage'])
-            if not user['social']:
-                return
-            for link in user['social'].values():
-                context.visit(link['url'])
+        for user in info["user"].values():
+            context.create_result(
+                "Pixiv",
+                url=url,
+                name=user["name"],
+                score=1.0,
+                description=user["comment"],
+                profile_picture=user["imageBig"],
+            )
+            if "webpage" in user and user["webpage"] is not None:
+                context.visit(user["webpage"])
+            if user["social"]:
+                for link in user["social"].values():
+                    context.visit(link["url"])
+
+            resp = requests.get(
+                f"https://sketch.pixiv.net/api/pixiv/user/posts/latest?user_id={id}",
+                headers=BASE_HEADERS,
+            )
+            if resp.status_code == 200:
+                data = resp.json()["data"]
+                context.visit(data["user"]["url"])
 
 
 class Background(TypedDict):

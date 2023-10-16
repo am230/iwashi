@@ -1,43 +1,57 @@
 import json
 import re
-from typing import List
+from typing import List, TypedDict
 
 import bs4
 import requests
-from typing_extensions import TypedDict
 
+from ..helper import BASE_HEADERS, HTTP_REGEX
 from ..visitor import Context, SiteVisitor
-from ..helper import HTTP_REGEX
 
 
 class Nicovideo(SiteVisitor):
-    NAME = 'Nicovideo'
-    URL_REGEX: re.Pattern = re.compile(HTTP_REGEX + r'(sp\.)?nicovideo.jp/(?P<path>user|mylist)/(?P<id>\d+)', re.IGNORECASE)
+    NAME = "Nicovideo"
+    URL_REGEX: re.Pattern = re.compile(
+        HTTP_REGEX + r"(sp\.)?nicovideo\.jp/(?P<path>user|mylist)/(?P<id>\d+)",
+        re.IGNORECASE,
+    )
 
     def normalize(self, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
-        if match.group('path') == 'mylist':
-            return self.normalize(requests.get(f'https://www.nicovideo.jp/mylist/{match.group("id")}', allow_redirects=True).url)
+        if match.group("path") == "mylist":
+            return self.normalize(
+                requests.get(
+                    f'https://www.nicovideo.jp/mylist/{match.group("id")}',
+                    allow_redirects=True,
+                    headers=BASE_HEADERS,
+                ).url
+            )
         return f'nicovideo.jp/user/{match.group("id")}'
 
     def visit(self, url, context: Context, path: str, id: str):
-        url = f'https://www.nicovideo.jp/user/{id}'
-        res = requests.get(f'https://www.nicovideo.jp/user/{id}')
-        soup = bs4.BeautifulSoup(res.text, 'html.parser')
-        element: bs4.Tag = soup.find(attrs={'id': 'js-initial-userpage-data'})  # type: ignore
+        url = f"https://www.nicovideo.jp/user/{id}"
+        res = requests.get(f"https://www.nicovideo.jp/user/{id}", headers=BASE_HEADERS)
+        soup = bs4.BeautifulSoup(res.text, "html.parser")
+        element: bs4.Tag = soup.find(attrs={"id": "js-initial-userpage-data"})  # type: ignore
         if element is None:
-            print(f'{id} not found')
+            print(f"{id} not found")
             return None
 
-        info: Root = json.loads(element.attrs['data-initial-data'])
-        user = info['state']['userDetails']['userDetails']['user']
-        context.create_result('Nicovideo', url=url, score=1.0, description=user['description'], profile_picture=user['icons']['large'])
+        info: Root = json.loads(element.attrs["data-initial-data"])
+        user = info["state"]["userDetails"]["userDetails"]["user"]
+        context.create_result(
+            "Nicovideo",
+            url=url,
+            score=1.0,
+            name=user["nickname"],
+            description=user["description"],
+            profile_picture=user["icons"]["large"],
+        )
 
-        for link in user['sns']:
-            context.visit(link['url'])
-
+        for link in user["sns"]:
+            context.visit(link["url"])
 
 
 class UserLevel(TypedDict):

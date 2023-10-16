@@ -1,4 +1,5 @@
 {
-    "python.analysis.typeCheckingMode": "off",
-    "esbonio.sphinx.confDir": ""
+    "python.analysis.typeCheckingMode": "basic",
+    "esbonio.sphinx.confDir": "",
+    "python.analysis.autoImportCompletions": true
 }

@@ -1,6 +1,11 @@
 from typing import List, MutableSet, Optional
-from .visitor import Visitor, SiteVisitor, Context, Result
-from .helper import parse_host
+
+import requests
+from loguru import logger
+
+from .helper import BASE_HEADERS, parse_host
+from .visitor import Context, Result, SiteVisitor, Visitor
+
 
 class Iwashi(Visitor):
     def __init__(self) -> None:
@@ -36,21 +41,34 @@ class Iwashi(Visitor):
                 context.parent.link(normalized)
             break
         else:
+            self.try_redirect(url, context)
             context.create_result(site_name=parse_host(url), url=url, score=1.0)
             self.mark_visited(url)
-            print('[Iwashi]', '[No Visitor Found]', url)
+            logger.warning(f"[No Visitor Found] {url}")
 
         return context.result
 
-def visit(url: str, iwashi: Optional[Iwashi] = None) -> Optional[Result]:
-    if iwashi is None:
-        iwashi = Iwashi()
-        from . import visitors
-        for attr in dir(visitors):
-            value = getattr(visitors, attr)
-            if attr.startswith('_'):
-                continue
-            if isinstance(value, type) and issubclass(value, SiteVisitor):
-                iwashi.add_visitor(value())
+    def try_redirect(self, url: str, context: Context) -> None:
+        res = requests.get(url, allow_redirects=True, headers=BASE_HEADERS)
+        if res.url == url:
+            return
+        context.visit(res.url)
+        logger.info(f"[Redirect] {url} -> {res.url}")
 
+
+def get_iwashi():
+    iwashi = Iwashi()
+    from . import visitors
+
+    for attr in dir(visitors):
+        value = getattr(visitors, attr)
+        if attr.startswith("_"):
+            continue
+        if isinstance(value, type) and issubclass(value, SiteVisitor):
+            iwashi.add_visitor(value())
+    return iwashi
+
+
+def visit(url: str, iwashi: Optional[Iwashi] = None) -> Optional[Result]:
+    iwashi = iwashi or get_iwashi()
     return iwashi.visit(url)

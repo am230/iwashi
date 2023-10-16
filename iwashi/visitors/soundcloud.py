@@ -1,17 +1,19 @@
 import json
 import re
-from typing import List
+from typing import List, TypedDict
 
 import requests
-from typing_extensions import TypedDict
+from loguru import logger
 
+from ..helper import BASE_HEADERS, HTTP_REGEX
 from ..visitor import Context, SiteVisitor
-from ..helper import HTTP_REGEX
 
 
 class Soundcloud(SiteVisitor):
-    NAME = 'Soundcloud'
-    URL_REGEX: re.Pattern = re.compile(HTTP_REGEX + r'soundcloud\.com/(?P<id>[-\w]+)', re.IGNORECASE)
+    NAME = "Soundcloud"
+    URL_REGEX: re.Pattern = re.compile(
+        HTTP_REGEX + r"soundcloud\.com/(?P<id>[-\w]+)", re.IGNORECASE
+    )
 
     def normalize(self, url: str) -> str:
         match = self.URL_REGEX.match(url)
@@ -20,36 +22,46 @@ class Soundcloud(SiteVisitor):
         return f'https://soundcloud.com/{match.group("id")}'
 
     def visit(self, url, context: Context, id: str):
-        url = f'https://soundcloud.com/{id}'
-        res = requests.get(url)
-        info_json = re.search(r'window\.__sc_hydration ?= ?(?P<info>.+);', res.text)
+        url = f"https://soundcloud.com/{id}"
+        res = requests.get(url, headers=BASE_HEADERS)
+        info_json = re.search(r"window\.__sc_hydration ?= ?(?P<info>.+);", res.text)
         if info_json is None:
-            print(f'[Soundcloud] Could not find info for {url}')
+            logger.warning(f"[Soundcloud] Could not find info for {url}")
             return
-        info_list: Root = json.loads(info_json.group('info'))
+        info_list: Root = json.loads(info_json.group("info"))
         for info in info_list:
-            if info['hydratable'] == 'user':
+            if info["hydratable"] == "user":
                 break
         else:
-            print(f'[Soundcloud] Could not find user info for {url}')
+            logger.warning(f"[Soundcloud] Could not find user info for {url}")
             return
 
-        context.create_result('Soundcloud', url=url, name=info['data']['username'], score=1.0, description=info['data']['description'], profile_picture=info['data']['avatar_url'])
+        context.create_result(
+            "Soundcloud",
+            url=url,
+            name=info["data"]["username"],
+            score=1.0,
+            description=info["data"]["description"],
+            profile_picture=info["data"]["avatar_url"],
+        )
         pass
-        client_id_res = requests.get("https://a-v2.sndcdn.com/assets/0-bf97f26a.js")
+        client_id_res = requests.get(
+            "https://a-v2.sndcdn.com/assets/0-bf97f26a.js", headers=BASE_HEADERS
+        )
         match = re.search(r"client_id: ?\"(?P<client_id>\w{32})\"", client_id_res.text)
         if match is None:
-            print(f'[Soundcloud] Could not find client_id for {url}')
+            logger.warning(f"[Soundcloud] Could not find client_id for {url}")
             return
-        client_id = match.group('client_id')
+        client_id = match.group("client_id")
 
         "https://api-v2.soundcloud.com/users/soundcloud:users:104832223/web-profiles?client_id=SDvic69dtCia3c4tYqKIhC6j7UfTPHLC&app_version=1678362857&app_locale=en"
-        profile_res = requests.get(f'https://api-v2.soundcloud.com/users/{info["data"]["urn"]}/web-profiles?client_id={client_id}&app_version=1678362857&app_locale=en', headers={
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.69'
-        })
+        profile_res = requests.get(
+            f'https://api-v2.soundcloud.com/users/{info["data"]["urn"]}/web-profiles?client_id={client_id}&app_version=1678362857&app_locale=en',
+            headers=BASE_HEADERS,
+        )
         profile: List[ProfileItem] = profile_res.json()
         for item in profile:
-            context.visit(item['url'])
+            context.visit(item["url"])
 
 
 class ProfileItem(TypedDict):

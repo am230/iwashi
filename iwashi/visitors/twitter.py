@@ -1,22 +1,26 @@
 import functools
 import json
 import re
-from typing import List, Optional, Union
+from typing import List, TypedDict
 
-import bs4
 import requests
-from typing_extensions import TypedDict
 
+from ..helper import BASE_HEADERS, HTTP_REGEX
 from ..visitor import Context, SiteVisitor
-from ..helper import HTTP_REGEX
 
 
 class Twitter(SiteVisitor):
-    NAME = 'Twitter'
-    URL_REGEX: re.Pattern = re.compile(HTTP_REGEX + r'twitter\.com/@?(?P<id>\w+)', re.IGNORECASE)
+    NAME = "Twitter"
+    URL_REGEX: re.Pattern = re.compile(
+        HTTP_REGEX + r"twitter\.com/@?(?P<id>\w+)", re.IGNORECASE
+    )
 
     def __init__(self) -> None:
-        pass
+        self.headers = {
+            "accept": "*/*",
+            "accept-encoding": "gzip, deflate, br",
+            "accept-language": "ja",
+        }
 
     def normalize(self, url: str) -> str:
         match = self.URL_REGEX.search(url)
@@ -24,59 +28,80 @@ class Twitter(SiteVisitor):
             return url
         return f'https://twitter.com/{match.group("id")}'
 
-    @functools.cached_property
-    def authorization(self) -> str:
-        res = requests.get('https://abs.twimg.com/responsive-web/client-web/main.28fc48ca.js')
-        match = re.search("(AAAAA.*?)\"", res.text)
+    @functools.lru_cache(maxsize=1)
+    def fetch_authorization(self) -> str:
+        res = requests.get(
+            "https://abs.twimg.com/responsive-web/client-web/main.28fc48ca.js",
+            headers=BASE_HEADERS,
+        )
+        match = re.search('(AAAAA.*?)"', res.text)
         assert match
         return "Bearer " + match.group(1)
 
-    def visit(self, url, context: Context, id: str):
-        headers = {
-            'accept': '*/*',
-            'accept-encoding': 'gzip, deflate, br',
-            'accept-language': 'ja',
-            'authorization': self.authorization,
-        }
+    @functools.lru_cache(maxsize=1)
+    def fetch_guest_token(self) -> str:
+        res = requests.post(
+            "https://api.twitter.com/1.1/guest/activate.json",
+            headers=BASE_HEADERS | self.headers,
+        )
+        return res.json()["guest_token"]
 
-        headers['x-guest-token'] = requests.post('https://api.twitter.com/1.1/guest/activate.json', headers=headers).json()['guest_token']
+    def setup_headers(self) -> None:
+        self.headers["authorization"] = self.fetch_authorization()
+        self.headers["x-guest-token"] = self.fetch_guest_token()
+
+    def visit(self, url, context: Context, id: str):
+        self.setup_headers()
 
         res = requests.get(
-            'https://api.twitter.com/graphql/rePnxwe9LZ51nQ7Sn_xN_A/UserByScreenName',
+            "https://api.twitter.com/graphql/rePnxwe9LZ51nQ7Sn_xN_A/UserByScreenName",
             params={
-                'variables': json.dumps({
-                    "screen_name": id,
-                    "withSafetyModeUserFields": True,
-                    "withSuperFollowsUserFields": True
-                }),
-                'features': json.dumps({
-                    "responsive_web_twitter_blue_verified_badge_is_enabled": True,
-                    "responsive_web_graphql_exclude_directive_enabled": True,
-                    "verified_phone_label_enabled": False,
-                    "responsive_web_graphql_skip_user_profile_image_extensions_enabled": False,
-                    "responsive_web_graphql_timeline_navigation_enabled": True
-                })
+                "variables": json.dumps(
+                    {
+                        "screen_name": id,
+                        "withSafetyModeUserFields": True,
+                        "withSuperFollowsUserFields": True,
+                    }
+                ),
+                "features": json.dumps(
+                    {
+                        "responsive_web_twitter_blue_verified_badge_is_enabled": True,
+                        "responsive_web_graphql_exclude_directive_enabled": True,
+                        "verified_phone_label_enabled": False,
+                        "responsive_web_graphql_skip_user_profile_image_extensions_enabled": False,
+                        "responsive_web_graphql_timeline_navigation_enabled": True,
+                    }
+                ),
             },
-            headers=headers
+            headers=BASE_HEADERS | self.headers,
         )
         info: Root = json.loads(res.text)
-        
-        result = info['data']['user']['result']
-        if result['__typename'] == 'UserUnavailable':
-            context.create_result('Twitter', url=url, name='<UserUnavailable>', score=1.0)
-            return
-            
-        data = result['legacy']
-        context.create_result('Twitter', url=url, name=data['name'], score=1.0, description=data['description'], profile_picture=data['profile_image_url_https'])
 
-        if 'url' not in data['entities']:
+        result = info["data"]["user"]["result"]
+        if result["__typename"] == "UserUnavailable":
+            context.create_result(
+                "Twitter", url=url, name="<UserUnavailable>", score=1.0
+            )
             return
 
-        for link in data['entities']['url']['urls']:
-            context.visit(link['expanded_url'])
+        data = result["legacy"]
+        context.create_result(
+            "Twitter",
+            url=url,
+            name=data["name"],
+            score=1.0,
+            description=data["description"],
+            profile_picture=data["profile_image_url_https"],
+        )
 
-        for link in data['entities']['description']['urls']:
-            context.visit(link['expanded_url'])
+        if "url" not in data["entities"]:
+            return
+
+        for link in data["entities"]["url"]["urls"]:
+            context.visit(link["expanded_url"])
+
+        for link in data["entities"]["description"]["urls"]:
+            context.visit(link["expanded_url"])
 
 
 class LocationsItem0(TypedDict):

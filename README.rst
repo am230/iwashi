@@ -2,7 +2,7 @@ Profile Link Tree Generator
 ===========================
 
 .. image:: https://img.shields.io/github/license/mashape/apistatus.svg
-   :target: http://opensource.org/licenses/MIT
+    :target: http://opensource.org/licenses/MIT
 .. image:: https://badge.fury.io/py/iwashi.svg
     :target: https://badge.fury.io/py/iwashi
 

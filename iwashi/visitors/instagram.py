@@ -1,16 +1,17 @@
-from typing_extensions import TypedDict
-from typing import List
 import re
+from typing import List, TypedDict
 
 import requests
 
+from ..helper import BASE_HEADERS, HTTP_REGEX
 from ..visitor import Context, SiteVisitor
-from ..helper import HTTP_REGEX
 
 
 class Instagram(SiteVisitor):
-    NAME = 'Instagram'
-    URL_REGEX: re.Pattern = re.compile(HTTP_REGEX + r'instagram\.com/(?P<id>\w+)', re.IGNORECASE)
+    NAME = "Instagram"
+    URL_REGEX: re.Pattern = re.compile(
+        HTTP_REGEX + r"instagram\.com/(?P<id>\w+)", re.IGNORECASE
+    )
 
     def normalize(self, url: str) -> str:
         match = self.URL_REGEX.match(url)
@@ -20,44 +21,56 @@ class Instagram(SiteVisitor):
 
     def visit(self, url, context: Context, id: str):
         session = requests.Session()
-        session.headers = {
-            'authority': 'www.instagram.com',
-            'accept': '*/*',
-            'accept-language': 'en-US,en;q=0.9',
-            'referer': f'https://www.instagram.com/{id}/',
-            'sec-ch-prefers-color-scheme': 'dark',
-            'sec-ch-ua': '"Not?A_Brand";v="8", "Chromium";v="108", "Microsoft Edge";v="108"',
-            'sec-fetch-dest': 'empty',
-            'sec-fetch-mode': 'cors',
-            'sec-fetch-site': 'same-origin',
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36',
-            'x-asbd-id': '198387',
-            'x-ig-www-claim': '0',
-            'x-requested-with': 'XMLHttpRequest'
-        }
+        session.headers = dict(
+            BASE_HEADERS
+            | {
+                "authority": "www.instagram.com",
+                "accept": "*/*",
+                "accept-language": "en-US,en;q=0.9",
+                "referer": f"https://www.instagram.com/{id}/",
+                "sec-ch-prefers-color-scheme": "dark",
+                "sec-ch-ua": '"Not?A_Brand";v="8", "Chromium";v="108", "Microsoft Edge";v="108"',
+                "sec-fetch-dest": "empty",
+                "sec-fetch-mode": "cors",
+                "sec-fetch-site": "same-origin",
+                "x-asbd-id": "198387",
+                "x-ig-www-claim": "0",
+                "x-requested-with": "XMLHttpRequest",
+            }
+        )
 
-        url = f'https://www.instagram.com/{id}/'
-        res = requests.get(url)
-        match = re.search(r'\"X-IG-App-ID\": ?\"(?P<id>\d{15})\"', res.text)
+        url = f"https://www.instagram.com/{id}/"
+        res = session.get(url)
+        match = re.search(r"\"X-IG-App-ID\": ?\"(?P<id>\d{15})\"", res.text)
         if match is None:
-            print(f'No X-IG-App-ID found in {url}')
+            print(f"No X-IG-App-ID found in {url}")
             return
-        session.headers['x-ig-app-id'] = match.group('id')
-        
-        csrf_res = requests.get('https://www.instagram.com/ajax/bz?__d=dis')
-        session.headers['x-csrftoken'] = csrf_res.cookies.get_dict()['csrftoken']
+        session.headers["x-ig-app-id"] = match.group("id")
 
-        info_res = requests.get(f'https://www.instagram.com/api/v1/users/web_profile_info/?username={id}')
+        csrf_res = session.get("https://www.instagram.com/ajax/bz?__d=dis")
+        session.headers["x-csrftoken"] = csrf_res.cookies.get_dict()["csrftoken"]
+
+        info_res = session.get(
+            f"https://www.instagram.com/api/v1/users/web_profile_info/?username={id}",
+        )
         if not info_res.ok or info_res.history:
-            print('[Instagram] Blocked by Instagram')
-            context.create_result('Instagram', url=url, name=id, score=0.0, description='Blocked by Instagram')
+            print("[Instagram] Blocked by Instagram")
+            context.create_result(
+                "Instagram",
+                url=url,
+                name=id,
+                score=0.0,
+                description="Blocked by Instagram",
+            )
             return
         info: Root = info_res.json()
-        user = info['data']['user']
-        context.create_result('Instagram', url=url, score=1.0, description=user['biography'])
+        user = info["data"]["user"]
+        context.create_result(
+            "Instagram", url=url, score=1.0, description=user["biography"]
+        )
 
-        for link in user['bio_links']:
-            context.visit(link['url'])
+        for link in user["bio_links"]:
+            context.visit(link["url"])
 
 
 class BioLinksItem0(TypedDict):

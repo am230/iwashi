@@ -1,18 +1,19 @@
 import json
 import re
-from typing import List, Union
+from typing import List, TypedDict, Union
 
 import bs4
 import requests
-from typing_extensions import TypedDict
 
-from ..helper import HTTP_REGEX
+from ..helper import BASE_HEADERS, HTTP_REGEX
 from ..visitor import Context, SiteVisitor
 
 
 class LitLink(SiteVisitor):
-    NAME = 'LitLink'
-    URL_REGEX: re.Pattern = re.compile(HTTP_REGEX + r'lit\.link/(?P<id>\w+)', re.IGNORECASE)
+    NAME = "LitLink"
+    URL_REGEX: re.Pattern = re.compile(
+        HTTP_REGEX + r"lit\.link/(?P<id>\w+)", re.IGNORECASE
+    )
 
     def normalize(self, url: str) -> str:
         match = self.URL_REGEX.match(url)
@@ -21,21 +22,28 @@ class LitLink(SiteVisitor):
         return f'https://lit.link/{match.group("id")}'
 
     def visit(self, url, context: Context, id: str):
-        res = requests.get(f'https://lit.link/{id}')
-        soup = bs4.BeautifulSoup(res.text, 'html.parser')
-        data_element = soup.find(attrs={'id': '__NEXT_DATA__'})
+        res = requests.get(f"https://lit.link/{id}", headers=BASE_HEADERS)
+        soup = bs4.BeautifulSoup(res.text, "html.parser")
+        data_element = soup.find(attrs={"id": "__NEXT_DATA__"})
         if data_element is None:
-            print(f'[LitLink] Could not find data element for {url}')
+            print(f"[LitLink] Could not find data element for {url}")
             return
         data: Root = json.loads(data_element.get_text())
-        profile: ProfileData = json.loads(data['props']['pageProps']['profileString'])
+        profile: ProfileData = json.loads(data["props"]["pageProps"]["profileString"])
 
-        context.create_result('LitLink', url=url, name=profile['name'], score=1.0, description=profile['profileText'], profile_picture=profile['pictureUrl'])
+        context.create_result(
+            "LitLink",
+            url=url,
+            name=profile["name"],
+            score=1.0,
+            description=profile["profileText"],
+            profile_picture=profile["pictureUrl"],
+        )
 
-        for link in profile['snsIconLink']['details']:
-            if 'url' not in link:
+        for link in profile["snsIconLink"]["details"]:
+            if "url" not in link:
                 continue
-            context.visit(link['url'])
+            context.visit(link["url"])
 
 
 class Birthday(TypedDict):
@@ -44,7 +52,7 @@ class Birthday(TypedDict):
 
 
 class SnsIconLink(TypedDict):
-    details: Union[List, List['DetailsItem0']]
+    details: Union[List, List["DetailsItem0"]]
 
 
 class ButtonLink(TypedDict):
