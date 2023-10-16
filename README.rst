@@ -6,11 +6,6 @@ Profile Link Tree Generator
 .. image:: https://badge.fury.io/py/iwashi.svg
     :target: https://badge.fury.io/py/iwashi
 
-Example
--------
-
-.. image:: https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/597237/e9c696cd-3af3-4b62-3e9e-fcfded07d64d.png
-
 Installation
 ------------
 
@@ -21,17 +16,11 @@ Installation
 Usage
 -----
 
-web mode
-
-.. code:: bash
-
-    python -m iwashi --server
-
 in command line
 
 .. code:: bash
 
-    python -m iwashi -url <profile url>
+    python -m iwashi <url>
 
 in code
 
@@ -99,7 +88,3 @@ in code
             │score: 1.0
             │links : []
     """
-
-Web
----
-.. image:: https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/597237/5b132a94-49a6-98a9-675f-ddc2d60c9532.png

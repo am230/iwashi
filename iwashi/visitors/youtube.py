@@ -107,13 +107,13 @@ class Youtube(SiteVisitor):
                         for command in link["channelExternalLinkViewModel"]["link"][
                             "commandRuns"
                         ]:
-                            url = command["onTap"]["innertubeCommand"]["urlEndpoint"][
+                            link = command["onTap"]["innertubeCommand"]["urlEndpoint"][
                                 "url"
                             ]
-                            uri = parse.urlparse(url)
+                            uri = parse.urlparse(link)
                             if uri.path == "/redirect":
-                                url = parse.unquote(parse.parse_qs(uri.query)["q"][0])
-                            links.append(url)
+                                link = parse.unquote(parse.parse_qs(uri.query)["q"][0])
+                            links.append(link)
             break
         else:
             raise NotImplementedError("Could not find about")

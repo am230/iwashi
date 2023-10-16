@@ -27,6 +27,8 @@ class Iwashi(Visitor):
 
     def visit(self, url: str, context: Optional[Context] = None) -> Optional[Result]:
         context = context or Context(url=url, visitor=self)
+        if self.is_visited(url):
+            return None
         for visitor in self.visitors:
             match = visitor.match(url, context)
             if match is None:

@@ -49,6 +49,8 @@ class Context:
         description: Optional[str] = None,
         profile_picture: Optional[str] = None,
     ) -> Result:
+        if self.result is not None:
+            raise RuntimeError("Result already created")
         self.result = Result(
             site_name=site_name,
             url=url,

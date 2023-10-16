@@ -1,14 +1,13 @@
-import argparse
+import click
 
 from .helper import print_result
 from .iwashi import visit
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-url", type=str, required=False)
-    args = parser.parse_args()
-    result = visit(args.url)
+@click.command()
+@click.argument("url", required=True)
+def main(url: str) -> None:
+    result = visit(url)
     assert result
     print("\n" * 4)
     print_result(result)
