@@ -35,18 +35,18 @@ class Iwashi(Visitor):
             if match is None:
                 continue
 
-            # try:
-            normalized = visitor.normalize(url)
-            if self.mark_visited(normalized):
-                match = visitor.match(normalized, context)
-                if match is not None:
-                    visitor.visit(normalized, context, **match.groupdict())
-            elif context.parent is not None:
-                context.parent.link(normalized)
-            # except Exception as e:
-            #     logger.warning(f"[Visitor Error] {url} {visitor.__class__.__name__}")
-            #     logger.exception(e)
-            #     continue
+            try:
+                normalized = visitor.normalize(url)
+                if self.mark_visited(normalized):
+                    match = visitor.match(normalized, context)
+                    if match is not None:
+                        visitor.visit(normalized, context, **match.groupdict())
+                elif context.parent is not None:
+                    context.parent.link(normalized)
+            except Exception as e:
+                logger.warning(f"[Visitor Error] {url} {visitor.__class__.__name__}")
+                logger.exception(e)
+                continue
             break
         else:
             self.try_redirect(url, context)
