@@ -59,7 +59,7 @@ class Youtube(SiteVisitor):
             return self._channel_by_video(uri.path[1:])
         type = next(filter(None, uri.path.split("/")))
         if type.startswith("@"):
-            return url
+            return f"https://www.youtube.com/{type}"
         if type == "watch":
             return self._channel_by_video(parse.parse_qs(uri.query)["v"][0])
         if type in ("channel", "user", "c"):

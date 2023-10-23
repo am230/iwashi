@@ -44,7 +44,7 @@ class Soundcloud(SiteVisitor):
             description=info["data"]["description"],
             profile_picture=info["data"]["avatar_url"],
         )
-        pass
+
         client_id_res = requests.get(
             "https://a-v2.sndcdn.com/assets/0-bf97f26a.js", headers=BASE_HEADERS
         )
@@ -54,10 +54,34 @@ class Soundcloud(SiteVisitor):
             return
         client_id = match.group("client_id")
 
-        "https://api-v2.soundcloud.com/users/soundcloud:users:104832223/web-profiles?client_id=SDvic69dtCia3c4tYqKIhC6j7UfTPHLC&app_version=1678362857&app_locale=en"
+        headers = {
+            "Accept": "application/json, text/javascript, */*; q=0.01",
+            "Accept-Language": "ja,en;q=0.9,en-GB;q=0.8,en-US;q=0.7",
+            "Authorization": "OAuth 2-294132-999490816-Mf51UTFjQ256LP",
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "Origin": "https://soundcloud.com",
+            "Pragma": "no-cache",
+            "Referer": "https://soundcloud.com/",
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Site": "same-site",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36 Edg/118.0.2088.61",
+            "sec-ch-ua": '"Chromium";v="118", "Microsoft Edge";v="118", "Not=A?Brand";v="99"',
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": '"Windows"',
+        }
+
+        params = {
+            "client_id": client_id,
+            "app_version": "1697797929",
+            "app_locale": "en",
+        }
+
         profile_res = requests.get(
-            f'https://api-v2.soundcloud.com/users/{info["data"]["urn"]}/web-profiles?client_id={client_id}&app_version=1678362857&app_locale=en',
-            headers=BASE_HEADERS,
+            f'https://api-v2.soundcloud.com/users/{info["data"]["urn"]}/web-profiles',
+            params=params,
+            headers=headers,
         )
         profile: List[ProfileItem] = profile_res.json()
         for item in profile:

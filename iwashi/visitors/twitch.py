@@ -54,6 +54,9 @@ class Twitch(SiteVisitor):
 
         info: Root = res.json()
         user = info[0]["data"]["user"]
+        if user is None:
+            logger.warning(f"[Twitch] Could not find user for {url}")
+            return
         context.create_result(
             "Twitch",
             url=url,

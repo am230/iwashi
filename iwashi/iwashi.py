@@ -3,7 +3,7 @@ from typing import List, MutableSet, Optional
 import requests
 from loguru import logger
 
-from .helper import BASE_HEADERS, parse_host
+from .helper import BASE_HEADERS, normalize_url, parse_host
 from .visitor import Context, Result, SiteVisitor, Visitor
 
 
@@ -26,6 +26,7 @@ class Iwashi(Visitor):
         return True
 
     def visit(self, url: str, context: Optional[Context] = None) -> Optional[Result]:
+        url = normalize_url(url)
         context = context or Context(url=url, visitor=self)
         if self.is_visited(url):
             return None
@@ -34,6 +35,7 @@ class Iwashi(Visitor):
             if match is None:
                 continue
 
+            # try:
             normalized = visitor.normalize(url)
             if self.mark_visited(normalized):
                 match = visitor.match(normalized, context)
@@ -41,6 +43,10 @@ class Iwashi(Visitor):
                     visitor.visit(normalized, context, **match.groupdict())
             elif context.parent is not None:
                 context.parent.link(normalized)
+            # except Exception as e:
+            #     logger.warning(f"[Visitor Error] {url} {visitor.__class__.__name__}")
+            #     logger.exception(e)
+            #     continue
             break
         else:
             self.try_redirect(url, context)

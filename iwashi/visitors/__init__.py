@@ -1,6 +1,8 @@
+from .bandcamp import Bandcamp
 from .bitly import Bitly
 from .booth import Booth
 from .fanbox import Fanbox
+from .fanlink import Fanlink
 from .googl import Googl
 from .instagram import Instagram
 from .linktree import Linktree
@@ -20,9 +22,11 @@ from .twitter import Twitter
 from .youtube import Youtube
 
 __all__ = [
+    "Bandcamp",
     "Bitly",
     "Booth",
     "Fanbox",
+    "Fanlink",
     "Googl",
     "Instagram",
     "Linktree",
