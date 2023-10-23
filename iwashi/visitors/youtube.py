@@ -1,5 +1,6 @@
 import json
 import re
+from pathlib import Path
 from typing import Dict, List, TypedDict, Union
 from urllib import parse
 
@@ -51,7 +52,10 @@ class Youtube(SiteVisitor):
         else:
             raise NotImplementedError("Could not find ytInitialData")
         root: Root = json.loads(script.text[script.text.index("{") : -1])
-        return root["metadata"]["channelMetadataRenderer"]["vanityChannelUrl"]
+        Path("dump.json").write_text(json.dumps(root, indent=2))
+        return root["header"]["c4TabbedHeaderRenderer"]["navigationEndpoint"][
+            "commandMetadata"
+        ]["webCommandMetadata"]["url"].split("@")[-1]
 
     def normalize(self, url: str) -> str | None:
         uri = parse.urlparse(url)
