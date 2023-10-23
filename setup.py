@@ -9,8 +9,8 @@ py_modules = [name]
 
 setup(
     name=name,
-    version="1.1.6",
-    keywords=("generator"),
+    version="1.1.7",
+    keywords=("generator", "sns"),
     description="Link Tree Generator",
     long_description=long_description,
     install_requires=["requests", "bs4", "yt-dlp", "loguru", "typingdict", "click"],

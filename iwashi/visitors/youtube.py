@@ -6,6 +6,7 @@ from urllib import parse
 
 import bs4
 import requests
+from loguru import logger
 
 from ..helper import BASE_HEADERS, HTTP_REGEX
 from ..visitor import Context, SiteVisitor
@@ -85,6 +86,7 @@ class Youtube(SiteVisitor):
             if script.text.startswith("var ytInitialData = "):
                 break
         else:
+            logger.warning(f"[Youtube] Could not find ytInitialData {url}")
             return
         root: Root = json.loads(script.text[len("var ytInitialData = ") : -1])
 
