@@ -60,7 +60,7 @@ class Iwashi(Visitor):
         res = requests.get(url, allow_redirects=True, headers=BASE_HEADERS)
         if res.url == url:
             return
-        context.create_result(site_name=parse_host(res.url), url=res.url, score=1.0)
+        context.create_result(site_name=parse_host(url), url=url, score=1.0)
         context.visit(res.url)
         logger.info(f"[Redirect] {url} -> {res.url}")
 
