@@ -30,7 +30,11 @@ class Youtube(SiteVisitor):
         author_url = author.select_one("link[itemprop=url]")
         if author_url is None:
             return None
-        return author_url.attrs.get("href")
+        uri = parse.urlparse(author_url.attrs["href"])
+        type = next(filter(None, uri.path.split("/")))
+        if type.startswith("@"):
+            return f"https://www.youtube.com/{type}"
+        raise Exception("Could not find channel")
 
     def _channel_by_url(self, url: str) -> str | None:
         res = requests.get(
@@ -53,9 +57,13 @@ class Youtube(SiteVisitor):
             raise NotImplementedError("Could not find ytInitialData")
         root: Root = json.loads(script.text[script.text.index("{") : -1])
         Path("dump.json").write_text(json.dumps(root, indent=2))
-        return root["header"]["c4TabbedHeaderRenderer"]["navigationEndpoint"][
-            "commandMetadata"
-        ]["webCommandMetadata"]["url"].split("@")[-1]
+        uri = parse.urlparse(
+            root["metadata"]["channelMetadataRenderer"]["vanityChannelUrl"]
+        )
+        type = next(filter(None, uri.path.split("/")))
+        if type.startswith("@"):
+            return f"https://www.youtube.com/{type}"
+        raise Exception("Could not find channel")
 
     def normalize(self, url: str) -> str | None:
         uri = parse.urlparse(url)
