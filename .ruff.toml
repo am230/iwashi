@@ -1,4 +1,2 @@
 select = ["E", "F"]
 ignore = ["E501"]
-
-exclude = ["__init__.py"]

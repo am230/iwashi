@@ -3,3 +3,4 @@ bs4
 loguru
 typingdict
 click
+ruff

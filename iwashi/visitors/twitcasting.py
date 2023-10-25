@@ -1,6 +1,4 @@
-import json
 import re
-from typing import List, TypedDict
 
 import bs4
 import requests
