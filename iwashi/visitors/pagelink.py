@@ -3,14 +3,12 @@ from __future__ import annotations
 import re
 import urllib.parse
 
-import requests
-
 from ..helper import HTTP_REGEX
 from ..visitor import Context, SiteVisitor
 
 
 class PageLink(SiteVisitor):
-    NAME = "Misskey"
+    NAME = "PageLink"
     URL_REGEX: re.Pattern = re.compile(
         HTTP_REGEX + r"(?P<host>\w+)\.page\.link/\?link=(?P<link>[^&]+)", re.IGNORECASE
     )

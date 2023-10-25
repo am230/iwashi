@@ -10,6 +10,7 @@ from .litlink import LitLink
 from .mirrativ import Mirrativ
 from .misskey import Misskey
 from .nicovideo import Nicovideo
+from .note import Note
 from .pagelink import PageLink
 from .pixiv import Pixiv
 from .reddit import Reddit
@@ -34,6 +35,7 @@ __all__ = [
     "Mirrativ",
     "Misskey",
     "Nicovideo",
+    "Note",
     "PageLink",
     "Pixiv",
     "Reddit",
