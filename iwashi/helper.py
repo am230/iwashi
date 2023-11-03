@@ -5,6 +5,7 @@ import string
 import time
 from typing import Any, Callable
 
+import httpx
 from loguru import logger
 
 from .visitor import Result
@@ -13,6 +14,7 @@ USER_AGENT = "Profile Link Generator (https://github.com/am230/iwashi)"
 BASE_HEADERS = {"User-Agent": USER_AGENT}
 HTTP_REGEX = "(https?://)?(www.)?"
 DEBUG = True
+session = httpx.AsyncClient(headers=BASE_HEADERS, follow_redirects=True)
 
 
 def print_result(
@@ -100,3 +102,31 @@ def retry_async(
         return wrapper
 
     return decorator
+
+
+def cache(func: Callable[..., Any]) -> Callable[..., Any]:
+    cache = {}
+
+    def wrapper(*args, **kwargs):
+        key = (args, tuple(kwargs.items()))
+        if key in cache:
+            return cache[key]
+        result = func(*args, **kwargs)
+        cache[key] = result
+        return result
+
+    return wrapper
+
+
+def cache_async(func: Callable[..., Any]) -> Callable[..., Any]:
+    cache = {}
+
+    async def wrapper(*args, **kwargs):
+        key = (args, tuple(kwargs.items()))
+        if key in cache:
+            return cache[key]
+        result = await func(*args, **kwargs)
+        cache[key] = result
+        return result
+
+    return wrapper

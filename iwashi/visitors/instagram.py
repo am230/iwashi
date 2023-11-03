@@ -1,7 +1,7 @@
 import re
 from typing import List, TypedDict
 
-import requests
+import httpx
 from loguru import logger
 
 from ..helper import BASE_HEADERS, HTTP_REGEX
@@ -14,17 +14,15 @@ class Instagram(SiteVisitor):
         HTTP_REGEX + r"instagram\.com/(?P<id>\w+)", re.IGNORECASE
     )
 
-    def normalize(self, url: str) -> str:
+    async def normalize(self, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
         return f'https://www.instagram.com/{match.group("id")}'
 
-    def visit(self, url, context: Context, id: str):
-        session = requests.Session()
-        session.headers = dict(
-            BASE_HEADERS
-            | {
+    async def visit(self, url, context: Context, id: str):
+        session = httpx.AsyncClient(
+            headers={
                 "authority": "www.instagram.com",
                 "accept": "*/*",
                 "accept-language": "en-US,en;q=0.9",
@@ -37,24 +35,24 @@ class Instagram(SiteVisitor):
                 "x-asbd-id": "198387",
                 "x-ig-www-claim": "0",
                 "x-requested-with": "XMLHttpRequest",
-            }
+            } | BASE_HEADERS,
         )
 
         url = f"https://www.instagram.com/{id}/"
-        res = session.get(url)
+        res = await session.get(url)
         match = re.search(r"\"X-IG-App-ID\": ?\"(?P<id>\d{15})\"", res.text)
         if match is None:
             logger.warning(f"[Instagram] No X-IG-App-ID found in {url}")
             return
         session.headers["x-ig-app-id"] = match.group("id")
 
-        csrf_res = session.get("https://www.instagram.com/ajax/bz?__d=dis")
-        session.headers["x-csrftoken"] = csrf_res.cookies.get_dict()["csrftoken"]
+        csrf_res = await session.get("https://www.instagram.com/ajax/bz?__d=dis")
+        session.headers["x-csrftoken"] = csrf_res.cookies["csrftoken"]
 
-        info_res = session.get(
+        info_res = await session.get(
             f"https://www.instagram.com/api/v1/users/web_profile_info/?username={id}",
         )
-        if not info_res.ok or info_res.history:
+        if info_res.status_code // 100 != 2 or info_res.history:
             logger.warning("[Instagram] Blocked by Instagram")
             context.create_result(
                 "Instagram",

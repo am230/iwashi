@@ -1,10 +1,9 @@
 import re
 from typing import List, TypedDict
 
-import requests
 from loguru import logger
 
-from ..helper import BASE_HEADERS, HTTP_REGEX
+from ..helper import HTTP_REGEX, session
 from ..visitor import Context, SiteVisitor
 
 
@@ -14,16 +13,18 @@ class Twitch(SiteVisitor):
         HTTP_REGEX + r"twitch\.tv/(?P<id>\w+)", re.IGNORECASE
     )
 
-    def normalize(self, url: str) -> str:
+    async def normalize(self, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
         return f'https://www.twitch.tv/{match.group("id")}'
 
-    def visit(self, url, context: Context, id: str):
+    async def visit(self, url, context: Context, id: str):
         url = f"https://www.twitch.tv/{id}"
 
-        res = requests.get(url, headers=BASE_HEADERS)
+        res = await session.get(
+            url,
+        )
         match = re.search(
             r'clientId ?= ?"(?P<token>kimne78kx3ncx6brgo4mv6wki5h1ko)"', res.text
         )
@@ -32,7 +33,7 @@ class Twitch(SiteVisitor):
             return
         token = match.group("token")
 
-        res = requests.post(
+        res = await session.post(
             "https://gql.twitch.tv/gql",
             json=[
                 {
@@ -46,8 +47,7 @@ class Twitch(SiteVisitor):
                     },
                 }
             ],
-            headers=BASE_HEADERS
-            | {
+            headers={
                 "Client-Id": token,
             },
         )

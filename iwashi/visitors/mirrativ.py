@@ -4,9 +4,8 @@ import re
 from typing import Dict, List, TypedDict, Union
 
 import bs4
-import requests
 
-from ..helper import BASE_HEADERS, HTTP_REGEX
+from ..helper import BASE_HEADERS, HTTP_REGEX, session
 from ..visitor import Context, SiteVisitor
 
 
@@ -16,21 +15,23 @@ class Mirrativ(SiteVisitor):
         HTTP_REGEX + r"mirrativ.com/user/(?P<id>[\d]+)", re.IGNORECASE
     )
 
-    def normalize(self, url: str) -> str:
+    async def normalize(self, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
         return f'https://mirrativ.com/user/{match.group("id")}'
 
-    def fetch_scrf_token(self) -> str | None:
-        res = requests.get("https://www.mirrativ.com/", headers=BASE_HEADERS)
+    async def fetch_scrf_token(self) -> str | None:
+        res = await session.get(
+            "https://www.mirrativ.com/",
+        )
         soup = bs4.BeautifulSoup(res.text, "html.parser")
         element = soup.select_one('meta[name="csrf-token"]')
         if element is None:
             raise RuntimeError("Could not find csrf-token")
         return element.attrs.get("content")
 
-    def visit(self, url, context: Context, id: str):
+    async def visit(self, url, context: Context, id: str):
         url = f"https://www.mirrativ.com/api/user/profile?user_id={id}"
 
         headers = BASE_HEADERS | {
@@ -38,12 +39,12 @@ class Mirrativ(SiteVisitor):
             "x-csrf-token": self.fetch_scrf_token(),
         }
 
-        res = requests.get(
+        res = await session.get(
             "https://www.mirrativ.com/api/user/profile",
             params={
                 "user_id": id,
             },
-            headers=BASE_HEADERS | headers,
+            headers=headers,
         )
         info: Root = res.json()
         context.create_result(

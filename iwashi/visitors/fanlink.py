@@ -5,9 +5,8 @@ import re
 from typing import List, TypedDict, Union
 
 import bs4
-import requests
 
-from ..helper import BASE_HEADERS, HTTP_REGEX
+from ..helper import HTTP_REGEX, session
 from ..visitor import Context, SiteVisitor
 
 DATA_REGEX = r"preloadLink\s?=\s(?P<json>{[^;]+)"
@@ -19,7 +18,7 @@ class Fanlink(SiteVisitor):
         HTTP_REGEX + r"(?P<id>[\w-]+\.)?fanlink\.to/(?P<slug>[\w-]+)", re.IGNORECASE
     )
 
-    def normalize(self, url: str) -> str:
+    async def normalize(self, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
@@ -28,13 +27,10 @@ class Fanlink(SiteVisitor):
             return f'https://fanlink.to/{match.group("slug")}'
         return f'https://{id}fanlink.to/{match.group("slug")}'
 
-    def visit(
+    async def visit(
         self, url, context: Context, id: str | None = None, slug: str | None = None
     ) -> None:
-        res = requests.get(
-            url,
-            headers=BASE_HEADERS,
-        )
+        res = await session.get(url)
         soup = bs4.BeautifulSoup(res.text, "html.parser")
         for script in soup.find_all("script"):
             if not script.string:

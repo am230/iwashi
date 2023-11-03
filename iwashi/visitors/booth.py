@@ -1,9 +1,8 @@
 import re
 
 import bs4
-import requests
 
-from ..helper import BASE_HEADERS, HTTP_REGEX
+from ..helper import HTTP_REGEX, session
 from ..visitor import Context, SiteVisitor
 
 
@@ -13,14 +12,14 @@ class Booth(SiteVisitor):
         HTTP_REGEX + r"(?P<id>[\w-]+)\.booth\.pm", re.IGNORECASE
     )
 
-    def normalize(self, url: str) -> str:
+    async def normalize(self, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
         return f'https://{match.group("id")}.booth.pm'
 
-    def visit(self, url, context: Context, id: str):
-        res = requests.get(f"https://{id}.booth.pm", headers=BASE_HEADERS)
+    async def visit(self, url, context: Context, id: str):
+        res = await session.get(f"https://{id}.booth.pm")
         soup = bs4.BeautifulSoup(res.text, "html.parser")
         name_element: bs4.Tag = soup.find(attrs={"class": "home-link-container__nickname"})  # type: ignore
         name = name_element is not None and name_element.find("a") or None

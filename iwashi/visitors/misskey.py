@@ -3,9 +3,7 @@ from __future__ import annotations
 import re
 from typing import List, TypedDict
 
-import requests
-
-from ..helper import BASE_HEADERS, HTTP_REGEX
+from ..helper import HTTP_REGEX, session
 from ..visitor import Context, SiteVisitor
 
 
@@ -15,15 +13,18 @@ class Misskey(SiteVisitor):
         HTTP_REGEX + r"(?P<host>[^.]+\.[^\/]+)/channels/(?P<channek_id>[\w]+)",
     )
 
-    def normalize(self, url: str) -> str:
+    async def normalize(self, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
         return f'https://{match.group("host")}/channels/{match.group("channel_id")}'
 
-    def visit(self, url, context: Context, host: str, channel_id: str):
+    async def visit(self, url, context: Context, host: str, channel_id: str):
         url = f"https://{host}/api/channels/show"
-        res = requests.post(url, json={"channelId": channel_id}, headers=BASE_HEADERS)
+        res = await session.post(
+            url,
+            json={"channelId": channel_id},
+        )
         info: Root = res.json()
         context.create_result(
             "Misskey",

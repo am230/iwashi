@@ -5,10 +5,9 @@ import re
 from typing import List, TypedDict
 
 import bs4
-import requests
 from loguru import logger
 
-from ..helper import BASE_HEADERS, HTTP_REGEX, normalize_url
+from ..helper import HTTP_REGEX, normalize_url, session
 from ..visitor import Context, SiteVisitor
 
 
@@ -18,15 +17,17 @@ class TikTok(SiteVisitor):
         HTTP_REGEX + r"tiktok\.com/@(?P<id>[-\w]+)", re.IGNORECASE
     )
 
-    def normalize(self, url: str) -> str:
+    async def normalize(self, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
         return f'https://tiktok.com/@{match.group("id")}'
 
-    def visit(self, url, context: Context, id: str):
+    async def visit(self, url, context: Context, id: str):
         url = f"https://tiktok.com/@{id}"
-        res = requests.get(url, headers=BASE_HEADERS)
+        res = await session.get(
+            url,
+        )
         soup = bs4.BeautifulSoup(res.text, "html.parser")
         # icon: <meta property="og:image"
         element = soup.select_one('meta[property="og:image"]')

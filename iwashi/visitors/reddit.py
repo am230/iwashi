@@ -5,9 +5,8 @@ import re
 from typing import List, TypedDict
 
 import bs4
-import requests
 
-from ..helper import BASE_HEADERS, HTTP_REGEX
+from ..helper import HTTP_REGEX, session
 from ..visitor import Context, SiteVisitor
 
 
@@ -17,15 +16,15 @@ class Reddit(SiteVisitor):
         HTTP_REGEX + r"reddit\.com/user/(?P<id>[\w-]+)", re.IGNORECASE
     )
 
-    def normalize(self, url: str) -> str:
+    async def normalize(self, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
         return f'https://reddit.com/user/{match.group("id")}'
 
-    def visit(self, url, context: Context, id: str):
-        res = requests.get(
-            f"https://www.reddit.com/user/{id}/about.json", headers=BASE_HEADERS
+    async def visit(self, url, context: Context, id: str):
+        res = await session.get(
+            f"https://www.reddit.com/user/{id}/about.json",
         )
         info: Root = res.json()
 
@@ -38,7 +37,9 @@ class Reddit(SiteVisitor):
             profile_picture=info["data"]["icon_img"],
         )
 
-        res = requests.get(f"https://www.reddit.com/user/{id}/", headers=BASE_HEADERS)
+        res = await session.get(
+            f"https://www.reddit.com/user/{id}/",
+        )
         soup = bs4.BeautifulSoup(res.text, "html.parser")
         # noun="social_link"
         for element in soup.select('[noun="social_link"]'):

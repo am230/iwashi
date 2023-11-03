@@ -1,10 +1,9 @@
 import re
 from typing import List, TypedDict
 
-import requests
 from loguru import logger
 
-from ..helper import BASE_HEADERS, HTTP_REGEX
+from ..helper import HTTP_REGEX, session
 from ..visitor import Context, SiteVisitor
 
 
@@ -14,19 +13,17 @@ class Fanbox(SiteVisitor):
         HTTP_REGEX + r"(?P<id>[\w-]+)\.fanbox\.cc", re.IGNORECASE
     )
 
-    def normalize(self, url: str) -> str:
+    async def normalize(self, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
         return f'https://{match.group("id")}.fanbox.cc'
 
-    def visit(self, url, context: Context, id: str):
+    async def visit(self, url, context: Context, id: str):
         url = f"https://{id}.fanbox.cc"
-        session = requests.Session()
-        creator_res = session.get(
+        creator_res = await session.get(
             f"https://api.fanbox.cc/creator.get?creatorId={id}",
-            headers=BASE_HEADERS
-            | {
+            headers={
                 "accept": "application/json",
                 "origin": f"https://{id}.fanbox.cc",
                 "referer": f"https://{id}.fanbox.cc/",

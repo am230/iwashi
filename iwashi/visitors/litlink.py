@@ -5,9 +5,9 @@ import re
 from typing import Dict, List, TypedDict, Union
 
 import bs4
-import requests
+from loguru import logger
 
-from ..helper import BASE_HEADERS, HTTP_REGEX
+from ..helper import HTTP_REGEX, session
 from ..visitor import Context, SiteVisitor
 
 
@@ -17,18 +17,20 @@ class LitLink(SiteVisitor):
         HTTP_REGEX + r"lit\.link/(?P<id>\w+)", re.IGNORECASE
     )
 
-    def normalize(self, url: str) -> str:
+    async def normalize(self, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
         return f'https://lit.link/{match.group("id")}'
 
-    def visit(self, url, context: Context, id: str):
-        res = requests.get(f"https://lit.link/{id}", headers=BASE_HEADERS)
+    async def visit(self, url, context: Context, id: str):
+        res = await session.get(
+            f"https://lit.link/{id}",
+        )
         soup = bs4.BeautifulSoup(res.text, "html.parser")
         data_element = soup.find(attrs={"id": "__NEXT_DATA__"})
         if data_element is None:
-            print(f"[LitLink] Could not find data element for {url}")
+            logger.warning(f"[LitLink] Could not find data element for {url}")
             return
         data: Root = json.loads(data_element.get_text())
         profile = data["props"]["pageProps"]["profile"]

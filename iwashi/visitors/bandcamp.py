@@ -5,9 +5,8 @@ import re
 from typing import List, TypedDict, Union
 
 import bs4
-import requests
 
-from ..helper import BASE_HEADERS, HTTP_REGEX
+from ..helper import HTTP_REGEX, session
 from ..visitor import Context, SiteVisitor
 
 DATA_REGEX = r"preloadLink\s?=\s(?P<json>{[^;]+)"
@@ -19,7 +18,7 @@ class Bandcamp(SiteVisitor):
         HTTP_REGEX + r"(?P<id>[\w-]+\.)?bandcamp\.com/(?P<slug>[\w-]+)?", re.IGNORECASE
     )
 
-    def normalize(self, url: str) -> str:
+    async def normalize(self, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
@@ -27,13 +26,10 @@ class Bandcamp(SiteVisitor):
             f'https://{match.group("id") or ""}bandcamp.com/{match.group("slug") or ""}'
         )
 
-    def visit(
+    async def visit(
         self, url, context: Context, id: str | None = None, slug: str | None = None
     ) -> None:
-        res = requests.get(
-            url,
-            headers=BASE_HEADERS,
-        )
+        res = await session.get(url)
         soup = bs4.BeautifulSoup(res.text, "html.parser")
         script = soup.select_one("script[type='application/ld+json']")
         if script is None:

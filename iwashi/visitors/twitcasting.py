@@ -1,10 +1,9 @@
 import re
 
 import bs4
-import requests
 from loguru import logger
 
-from ..helper import BASE_HEADERS, HTTP_REGEX, normalize_url
+from ..helper import HTTP_REGEX, normalize_url, session
 from ..visitor import Context, SiteVisitor
 
 
@@ -14,15 +13,17 @@ class TwitCasting(SiteVisitor):
         HTTP_REGEX + r"twitcasting\.tv/(?P<id>[-\w]+)", re.IGNORECASE
     )
 
-    def normalize(self, url: str) -> str:
+    async def normalize(self, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
         return f'https://twitcasting.tv/{match.group("id")}'
 
-    def visit(self, url, context: Context, id: str):
+    async def visit(self, url, context: Context, id: str):
         url = f"https://twitcasting.tv/{id}"
-        res = requests.get(url, headers=BASE_HEADERS)
+        res = await session.get(
+            url,
+        )
         soup = bs4.BeautifulSoup(res.text, "html.parser")
         # name: .tw-user-nav-name
         element = soup.select_one(".tw-user-nav-name")

@@ -3,9 +3,9 @@ import re
 from typing import Dict, List, Optional, TypeAlias, TypedDict
 
 import bs4
-import requests
+from loguru import logger
 
-from ..helper import BASE_HEADERS, HTTP_REGEX
+from ..helper import HTTP_REGEX, session
 from ..visitor import Context, SiteVisitor
 
 
@@ -15,20 +15,25 @@ class Pixiv(SiteVisitor):
         HTTP_REGEX + r"pixiv\.net/users/(?P<id>\d+)", re.IGNORECASE
     )
 
-    def normalize(self, url: str) -> str:
+    async def normalize(self, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
         return f'https://pixiv.net/users/{match.group("id")}'
 
-    def visit(self, url, context: Context, id: str):
-        res = requests.get(f"https://pixiv.net/users/{id}", headers=BASE_HEADERS)
+    async def visit(self, url, context: Context, id: str):
+        res = await session.get(
+            f"https://pixiv.net/users/{id}",
+        )
         soup = bs4.BeautifulSoup(res.text, "html.parser")
         meta_element: bs4.Tag = soup.find("meta", attrs={"name": "preload-data", "id": "meta-preload-data"})  # type: ignore
+        if meta_element is None:
+            logger.warning(f"[Pixiv] meta-preload-data not found: {id}")
+            return
         info: Root = json.loads(meta_element.attrs["content"])
 
         if len(info["user"].values()) > 1:
-            print(f"[Pixiv] User is must be unique: {id}")
+            logger.warning(f"[Pixiv] User is must be unique: {id}")
             return
 
         for user in info["user"].values():
@@ -46,9 +51,8 @@ class Pixiv(SiteVisitor):
                 for link in user["social"].values():
                     context.visit(link["url"])
 
-            resp = requests.get(
-                f"https://sketch.pixiv.net/api/pixiv/user/posts/latest?user_id={id}",
-                headers=BASE_HEADERS,
+            resp = await session.get(
+                f"https://sketch.pixiv.net/api/pixiv/user/posts/latest?user_id={id}"
             )
             if resp.status_code == 200:
                 data = resp.json()["data"]

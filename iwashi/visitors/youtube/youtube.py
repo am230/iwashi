@@ -4,10 +4,9 @@ from typing import Any
 from urllib import parse
 
 import bs4
-import requests
 from loguru import logger
 
-from ...helper import BASE_HEADERS, HTTP_REGEX, retry
+from ...helper import HTTP_REGEX, retry, session
 from ...visitor import Context, SiteVisitor
 from .types import about, channels
 
@@ -18,11 +17,10 @@ class Youtube(SiteVisitor):
         HTTP_REGEX + r"((m|gaming)\.)?(youtube\.com|youtu\.be)", re.IGNORECASE
     )
 
-    def _channel_by_video(self, video_id: str) -> str | None:
-        res = requests.get(
+    async def _channel_by_video(self, video_id: str) -> str | None:
+        res = await session.get(
             "https://www.youtube.com/watch",
             params={"v": video_id},
-            headers=BASE_HEADERS,
         )
         soup = bs4.BeautifulSoup(res.text, "html.parser")
         author = soup.select_one("span[itemprop=author]")
@@ -37,11 +35,10 @@ class Youtube(SiteVisitor):
             return f"https://www.youtube.com/{type}"
         raise Exception("Could not find channel")
 
-    def _channel_by_url(self, url: str) -> str | None:
-        res = requests.get(
+    async def _channel_by_url(self, url: str) -> str | None:
+        res = await session.get(
             url,
-            headers=BASE_HEADERS
-            | {
+            headers={
                 "accept": "*/*",
                 "accept-encoding": "gzip, deflate, br",
                 "accept-language": "ja",
@@ -65,23 +62,23 @@ class Youtube(SiteVisitor):
             return f"https://www.youtube.com/{type}"
         raise Exception("Could not find channel")
 
-    def normalize(self, url: str) -> str | None:
+    async def normalize(self, url: str) -> str | None:
         uri = parse.urlparse(url)
         if uri.hostname == "youtu.be":
-            return self._channel_by_video(uri.path[1:])
+            return await self._channel_by_video(uri.path[1:])
         type = next(filter(None, uri.path.split("/")))
         if type.startswith("@"):
             return f"https://www.youtube.com/{type}"
         if type == "playlist":
             return None
         if type == "watch":
-            return self._channel_by_video(parse.parse_qs(uri.query)["v"][0])
+            return await self._channel_by_video(parse.parse_qs(uri.query)["v"][0])
         if type in ("channel", "user", "c"):
-            return self._channel_by_url(url)
+            return await self._channel_by_url(url)
         return url
 
-    def _extract_initial_data(self, url: str) -> Any | None:
-        about_res = requests.get(f"{url}/about", headers=BASE_HEADERS)
+    async def _extract_initial_data(self, url: str) -> Any | None:
+        about_res = await session.get(url)
         if about_res.status_code // 100 == 4:
             return None
         soup = bs4.BeautifulSoup(about_res.text, "html.parser")
@@ -112,8 +109,8 @@ class Youtube(SiteVisitor):
             return tab  # type: ignore
 
     @retry(3)
-    def _extract_links(self, url: str) -> set[str]:
-        root: about.Root | None = self._extract_initial_data(f"{url}/about")
+    async def _extract_links(self, url: str) -> set[str]:
+        root: about.Root | None = await self._extract_initial_data(f"{url}/about")
         if root is None:
             raise Exception("Could not find root")
         links = set()
@@ -144,14 +141,14 @@ class Youtube(SiteVisitor):
                         links.add(link)
         return links
 
-    def visit(self, url, context: Context):
-        about_data: about.Root | None = self._extract_initial_data(f"{url}/about")
+    async def visit(self, url, context: Context):
+        about_data: about.Root | None = await self._extract_initial_data(f"{url}/about")
         if about_data is None:
             logger.warning(f"[Youtube] Channel not found {url}")
             return
 
         profile_picture = None
-        if "avatar" in about_data["header"]["c4TabbedHeaderRenderer"]:
+        if "avatar" in about_data["header"].get("c4TabbedHeaderRenderer", {}):
             profile_picture = about_data["header"]["c4TabbedHeaderRenderer"]["avatar"][
                 "thumbnails"
             ][0]["url"]
@@ -172,9 +169,9 @@ class Youtube(SiteVisitor):
             profile_picture=profile_picture,
         )
 
-        for link in self._extract_links(url):
+        for link in await self._extract_links(url):
             context.visit(link)
-        channels_data: channels.Root | None = self._extract_initial_data(
+        channels_data: channels.Root | None = await self._extract_initial_data(
             f"{url}/channels"
         )
         if channels_data is None:

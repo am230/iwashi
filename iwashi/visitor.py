@@ -3,6 +3,8 @@ import re
 from dataclasses import dataclass, field
 from typing import List, Optional, Protocol
 
+from httpx import URL
+
 HTTP_REGEX = "(https?://)?(www.)?"
 
 
@@ -26,7 +28,13 @@ class Result:
 
 
 class Visitor(Protocol):
-    def visit(self, url: str, context: "Context", **kwargs) -> Result:
+    async def visit(self, url: str, context: "Context", **kwargs) -> Result:
+        ...
+
+    async def tree(self, url: str, context: "Context", **kwargs) -> Result:
+        ...
+
+    def queue(self, url: str, context: "Context") -> None:
         ...
 
     def mark_visited(self, url: str) -> None:
@@ -75,8 +83,10 @@ class Context:
     def create(self, url: str) -> "Context":
         return Context(url=url, visitor=self.visitor, parent=self)
 
-    def visit(self, url: str) -> None:
-        self.visitor.visit(url, self.create(url))
+    def visit(self, url: str | URL) -> None:
+        if isinstance(url, URL):
+            url = str(url)
+        self.visitor.queue(url, self.create(url))
 
     def __repr__(self) -> str:
         return f"Context(url={self.url!r})"
@@ -91,9 +101,9 @@ class SiteVisitor(abc.ABC):
             raise NotImplementedError()
         return self.URL_REGEX.match(url)
 
-    def normalize(self, url: str) -> str | None:
+    async def normalize(self, url: str) -> str | None:
         return url
 
     @abc.abstractmethod
-    def visit(self, url, context: Context, **kwargs) -> Optional[Result]:
+    async def visit(self, url, context: Context, **kwargs) -> Optional[Result]:
         raise NotImplementedError()

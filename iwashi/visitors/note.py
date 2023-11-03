@@ -5,9 +5,8 @@ import re
 from typing import TypedDict
 
 import bs4
-import requests
 
-from ..helper import BASE_HEADERS, HTTP_REGEX
+from ..helper import HTTP_REGEX, session
 from ..visitor import Context, SiteVisitor
 
 
@@ -17,14 +16,16 @@ class Note(SiteVisitor):
         HTTP_REGEX + r"note\.com/(?P<user>[^/]+)", re.IGNORECASE
     )
 
-    def normalize(self, url: str) -> str:
+    async def normalize(self, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
         return f"https://note.com/{match.group('user')}"
 
-    def visit(self, url: str, context: Context, user: str):
-        res = requests.get(url, headers=BASE_HEADERS)
+    async def visit(self, url: str, context: Context, user: str):
+        res = await session.get(
+            url,
+        )
         soup = bs4.BeautifulSoup(res.text, "html.parser")
 
         data_element = soup.select_one("script[type='application/ld+json']")

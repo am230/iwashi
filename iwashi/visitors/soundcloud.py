@@ -2,10 +2,9 @@ import json
 import re
 from typing import List, TypedDict
 
-import requests
 from loguru import logger
 
-from ..helper import BASE_HEADERS, HTTP_REGEX
+from ..helper import HTTP_REGEX, session
 from ..visitor import Context, SiteVisitor
 
 
@@ -15,15 +14,17 @@ class Soundcloud(SiteVisitor):
         HTTP_REGEX + r"soundcloud\.com/(?P<id>[-\w]+)", re.IGNORECASE
     )
 
-    def normalize(self, url: str) -> str:
+    async def normalize(self, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
         return f'https://soundcloud.com/{match.group("id")}'
 
-    def visit(self, url, context: Context, id: str):
+    async def visit(self, url, context: Context, id: str):
         url = f"https://soundcloud.com/{id}"
-        res = requests.get(url, headers=BASE_HEADERS)
+        res = await session.get(
+            url,
+        )
         info_json = re.search(r"window\.__sc_hydration ?= ?(?P<info>.+);", res.text)
         if info_json is None:
             logger.warning(f"[Soundcloud] Could not find info for {url}")
@@ -45,8 +46,8 @@ class Soundcloud(SiteVisitor):
             profile_picture=info["data"]["avatar_url"],
         )
 
-        client_id_res = requests.get(
-            "https://a-v2.sndcdn.com/assets/0-bf97f26a.js", headers=BASE_HEADERS
+        client_id_res = await session.get(
+            "https://a-v2.sndcdn.com/assets/0-bf97f26a.js",
         )
         match = re.search(r"client_id: ?\"(?P<client_id>\w{32})\"", client_id_res.text)
         if match is None:
@@ -78,7 +79,7 @@ class Soundcloud(SiteVisitor):
             "app_locale": "en",
         }
 
-        profile_res = requests.get(
+        profile_res = await session.get(
             f'https://api-v2.soundcloud.com/users/{info["data"]["urn"]}/web-profiles',
             params=params,
             headers=headers,

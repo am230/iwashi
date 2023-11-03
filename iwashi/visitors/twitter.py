@@ -1,12 +1,10 @@
-import functools
 import json
 import re
 from typing import List, TypedDict
 
-import requests
 from loguru import logger
 
-from ..helper import BASE_HEADERS, HTTP_REGEX
+from ..helper import HTTP_REGEX, cache_async, session
 from ..visitor import Context, SiteVisitor
 
 
@@ -23,38 +21,37 @@ class Twitter(SiteVisitor):
             "accept-language": "ja",
         }
 
-    def normalize(self, url: str) -> str:
+    async def normalize(self, url: str) -> str:
         match = self.URL_REGEX.search(url)
         if match is None:
             return url
         return f'https://twitter.com/{match.group("id")}'
 
-    @functools.lru_cache(maxsize=1)
-    def fetch_authorization(self) -> str:
-        res = requests.get(
-            "https://abs.twimg.com/responsive-web/client-web/main.28fc48ca.js",
-            headers=BASE_HEADERS,
+    @cache_async
+    async def fetch_authorization(self) -> str:
+        res = await session.get(
+            "https://abs.twimg.com/responsive-web/client-web/main.28fc48ca.js"
         )
         match = re.search('(AAAAA.*?)"', res.text)
         assert match
         return "Bearer " + match.group(1)
 
-    @functools.lru_cache(maxsize=1)
-    def fetch_guest_token(self) -> str:
-        res = requests.post(
+    @cache_async
+    async def fetch_guest_token(self) -> str:
+        res = await session.post(
             "https://api.twitter.com/1.1/guest/activate.json",
-            headers=BASE_HEADERS | self.headers,
+            headers=self.headers,
         )
         return res.json()["guest_token"]
 
-    def setup_headers(self) -> None:
-        self.headers["authorization"] = self.fetch_authorization()
-        self.headers["x-guest-token"] = self.fetch_guest_token()
+    async def setup_headers(self) -> None:
+        self.headers["authorization"] = await self.fetch_authorization()
+        self.headers["x-guest-token"] = await self.fetch_guest_token()
 
-    def visit(self, url, context: Context, id: str):
-        self.setup_headers()
+    async def visit(self, url, context: Context, id: str):
+        await self.setup_headers()
 
-        res = requests.get(
+        res = await session.get(
             "https://api.twitter.com/graphql/rePnxwe9LZ51nQ7Sn_xN_A/UserByScreenName",
             params={
                 "variables": json.dumps(
@@ -74,7 +71,7 @@ class Twitter(SiteVisitor):
                     }
                 ),
             },
-            headers=BASE_HEADERS | self.headers,
+            headers=self.headers,
         )
         info: Root = json.loads(res.text)
         if not info["data"]:

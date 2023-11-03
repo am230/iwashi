@@ -5,10 +5,9 @@ import re
 from typing import Dict, List, TypedDict
 
 import bs4
-import requests
 from loguru import logger
 
-from ..helper import BASE_HEADERS, HTTP_REGEX
+from ..helper import HTTP_REGEX, session
 from ..visitor import Context, SiteVisitor
 
 
@@ -18,14 +17,16 @@ class Sketch(SiteVisitor):
         HTTP_REGEX + r"sketch\.pixiv\.net/@(?P<id>\w+)", re.IGNORECASE
     )
 
-    def normalize(self, url: str) -> str:
+    async def normalize(self, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
         return f'https://sketch.pixiv.net/@{match.group("id")}'
 
-    def visit(self, url, context: Context, id: str):
-        res = requests.get(f"https://sketch.pixiv.net/@{id}", headers=BASE_HEADERS)
+    async def visit(self, url, context: Context, id: str):
+        res = await session.get(
+            f"https://sketch.pixiv.net/@{id}",
+        )
         soup = bs4.BeautifulSoup(res.text, "html.parser")
         # __NEXT_DATA__
         element: bs4.Tag = soup.find(attrs={"id": "__NEXT_DATA__"})  # type: ignore

@@ -3,9 +3,9 @@ import re
 from typing import List, TypedDict
 
 import bs4
-import requests
+from loguru import logger
 
-from ..helper import BASE_HEADERS, HTTP_REGEX
+from ..helper import HTTP_REGEX, session
 from ..visitor import Context, SiteVisitor
 
 
@@ -16,27 +16,26 @@ class Nicovideo(SiteVisitor):
         re.IGNORECASE,
     )
 
-    def normalize(self, url: str) -> str:
+    async def normalize(self, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
         if match.group("path") == "mylist":
-            return self.normalize(
-                requests.get(
-                    f'https://www.nicovideo.jp/mylist/{match.group("id")}',
-                    allow_redirects=True,
-                    headers=BASE_HEADERS,
-                ).url
+            res = await session.get(
+                f'https://www.nicovideo.jp/mylist/{match.group("id")}'
             )
+            return await self.normalize(str(res.url))
         return f'nicovideo.jp/user/{match.group("id")}'
 
-    def visit(self, url, context: Context, path: str, id: str):
+    async def visit(self, url, context: Context, path: str, id: str):
         url = f"https://www.nicovideo.jp/user/{id}"
-        res = requests.get(f"https://www.nicovideo.jp/user/{id}", headers=BASE_HEADERS)
+        res = await session.get(
+            f"https://www.nicovideo.jp/user/{id}",
+        )
         soup = bs4.BeautifulSoup(res.text, "html.parser")
         element: bs4.Tag = soup.find(attrs={"id": "js-initial-userpage-data"})  # type: ignore
         if element is None:
-            print(f"{id} not found")
+            logger.warning(f"[Nicovideo] {id} not found")
             return None
 
         info: Root = json.loads(element.attrs["data-initial-data"])
