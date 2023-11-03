@@ -9,11 +9,11 @@ py_modules = [name]
 
 setup(
     name=name,
-    version="2.0.0",
+    version="2.0.1",
     keywords=["generator", "sns"],
     description="Link Tree Generator",
     long_description=long_description,
-    install_requires=["requests", "bs4", "yt-dlp", "loguru", "typingdict", "click"],
+    install_requires=["httpx", "bs4", "yt-dlp", "loguru", "typingdict", "click"],
     license="MIT Licence",
     long_description_content_type="text/x-rst",
     packages=find_packages(),
