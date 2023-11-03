@@ -1,13 +1,18 @@
+import asyncio
 import random
 import re
 import string
+import time
 from typing import Any, Callable
+
+from loguru import logger
 
 from .visitor import Result
 
-USER_AGENT = "https://github.com/am230/iwashi"
+USER_AGENT = "Profile Link Generator (https://github.com/am230/iwashi)"
 BASE_HEADERS = {"User-Agent": USER_AGENT}
 HTTP_REGEX = "(https?://)?(www.)?"
+DEBUG = True
 
 
 def print_result(
@@ -44,3 +49,54 @@ def normalize_url(url: str) -> str:
     if match is None:
         raise ValueError(f"Invalid URL: {url}")
     return f"{match.group('protocol') or 'https'}://{match.group('domain')}{match.group('path') or ''}{match.group('query') or ''}"
+
+
+def retry(
+    max_retry: int,
+    retry_interval: int = 0,
+    retry_on: Callable[[Exception], bool] = lambda _: True,
+) -> Callable[..., Any]:
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            for i in range(max_retry):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    if not retry_on(e):
+                        raise e
+                    logger.debug(f"Retrying {func.__name__} ({i + 1}/{max_retry})")
+                    time.sleep(retry_interval)
+                    continue
+            raise Exception(
+                f"Failed to execute {func.__name__} after {max_retry} retries"
+            )
+
+        return wrapper
+
+    return decorator
+
+
+def retry_async(
+    max_retry: int,
+    retry_interval: int = 0,
+    retry_on: Callable[[Exception], bool] = lambda _: True,
+) -> Callable[..., Any]:
+    def decorator(func):
+        async def wrapper(*args, **kwargs):
+            e: Exception | None = None
+            for i in range(max_retry):
+                try:
+                    return await func(*args, **kwargs)
+                except Exception as e:
+                    if not retry_on(e):
+                        raise e
+                    logger.debug(f"Retrying {func.__name__} ({i + 1}/{max_retry})")
+                    await asyncio.sleep(retry_interval)
+                    continue
+            raise Exception(
+                f"Failed to execute {func.__name__} after {max_retry} retries"
+            )
+
+        return wrapper
+
+    return decorator

@@ -16,17 +16,16 @@ DATA_REGEX = r"preloadLink\s?=\s(?P<json>{[^;]+)"
 class Bandcamp(SiteVisitor):
     NAME = "Bandcamp"
     URL_REGEX: re.Pattern = re.compile(
-        HTTP_REGEX + r"(?P<id>[\w-]+\.)?bandcamp\.com/(?P<slug>[\w-]+)", re.IGNORECASE
+        HTTP_REGEX + r"(?P<id>[\w-]+\.)?bandcamp\.com/(?P<slug>[\w-]+)?", re.IGNORECASE
     )
 
     def normalize(self, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
-        id = match.group("id")
-        if id is None:
-            return f'https://bandcamp.com/{match.group("slug")}'
-        return f'https://{id}bandcamp.com/{match.group("slug")}'
+        return (
+            f'https://{match.group("id") or ""}bandcamp.com/{match.group("slug") or ""}'
+        )
 
     def visit(
         self, url, context: Context, id: str | None = None, slug: str | None = None
@@ -45,7 +44,7 @@ class Bandcamp(SiteVisitor):
             site_name="Bandcamp",
             url=url,
             name=data["name"],
-            description=data["description"],
+            description=data.get("description"),
             profile_picture=data["image"],
         )
 

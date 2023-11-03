@@ -10,7 +10,7 @@ from ..visitor import Context, SiteVisitor
 class Booth(SiteVisitor):
     NAME = "Booth"
     URL_REGEX: re.Pattern = re.compile(
-        HTTP_REGEX + r"(?P<id>\w+)\.booth\.pm", re.IGNORECASE
+        HTTP_REGEX + r"(?P<id>[\w-]+)\.booth\.pm", re.IGNORECASE
     )
 
     def normalize(self, url: str) -> str:

@@ -2,6 +2,7 @@ import re
 from typing import List, TypedDict
 
 import requests
+from loguru import logger
 
 from ..helper import BASE_HEADERS, HTTP_REGEX
 from ..visitor import Context, SiteVisitor
@@ -10,7 +11,7 @@ from ..visitor import Context, SiteVisitor
 class Fanbox(SiteVisitor):
     NAME = "Fanbox"
     URL_REGEX: re.Pattern = re.compile(
-        HTTP_REGEX + r"(?P<id>\w+)\.fanbox\.cc", re.IGNORECASE
+        HTTP_REGEX + r"(?P<id>[\w-]+)\.fanbox\.cc", re.IGNORECASE
     )
 
     def normalize(self, url: str) -> str:
@@ -31,8 +32,14 @@ class Fanbox(SiteVisitor):
                 "referer": f"https://{id}.fanbox.cc/",
             },
         )
+        if creator_res.status_code // 100 == 4:
+            logger.warning(f"[Fanbox] Could not find user for {url}")
+            return
 
         info: Root = creator_res.json()
+        if "error" in info:
+            logger.warning(f"[Fanbox] Could not find user for {url}")
+            return
         context.create_result(
             "Fanbox",
             url=url,

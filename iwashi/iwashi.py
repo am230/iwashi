@@ -3,7 +3,7 @@ from typing import List, MutableSet, Optional
 import requests
 from loguru import logger
 
-from .helper import BASE_HEADERS, normalize_url, parse_host
+from .helper import BASE_HEADERS, DEBUG, normalize_url, parse_host
 from .visitor import Context, Result, SiteVisitor, Visitor
 
 
@@ -37,6 +37,8 @@ class Iwashi(Visitor):
 
             try:
                 normalized = visitor.normalize(url)
+                if normalized is None:
+                    continue
                 if self.mark_visited(normalized):
                     match = visitor.match(normalized, context)
                     if match is not None:
@@ -46,23 +48,32 @@ class Iwashi(Visitor):
             except Exception as e:
                 logger.warning(f"[Visitor Error] {url} {visitor.__class__.__name__}")
                 logger.exception(e)
+                if DEBUG:
+                    raise e
                 continue
             break
         else:
-            self.try_redirect(url, context)
             context.create_result(site_name=parse_host(url), url=url, score=1.0)
             self.mark_visited(url)
-            logger.warning(f"[No Visitor Found] {url}")
+            if self.try_redirect(url, context):
+                return context.result
+            else:
+                logger.warning(f"[No Visitor Found] {url}")
 
         return context.result
 
-    def try_redirect(self, url: str, context: Context) -> None:
-        res = requests.get(url, allow_redirects=True, headers=BASE_HEADERS)
+    def try_redirect(self, url: str, context: Context) -> bool:
+        try:
+            res = requests.get(url, allow_redirects=True, headers=BASE_HEADERS)
+        except requests.RequestException:
+            logger.warning(f"[Redirect] failed to redirect {url}")
+            return False
         if res.url == url:
-            return
+            return False
         context.create_result(site_name=parse_host(url), url=url, score=1.0)
         context.visit(res.url)
         logger.info(f"[Redirect] {url} -> {res.url}")
+        return True
 
 
 def get_iwashi():

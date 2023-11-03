@@ -4,6 +4,7 @@ import re
 from typing import List, TypedDict
 
 import requests
+from loguru import logger
 
 from ..helper import BASE_HEADERS, HTTP_REGEX
 from ..visitor import Context, SiteVisitor
@@ -12,7 +13,7 @@ from ..visitor import Context, SiteVisitor
 class Twitter(SiteVisitor):
     NAME = "Twitter"
     URL_REGEX: re.Pattern = re.compile(
-        HTTP_REGEX + r"twitter\.com/@?(?P<id>\w+)", re.IGNORECASE
+        HTTP_REGEX + r"(twitter|x)\.com/(#!/)?@?(?P<id>\w+)", re.IGNORECASE
     )
 
     def __init__(self) -> None:
@@ -76,7 +77,9 @@ class Twitter(SiteVisitor):
             headers=BASE_HEADERS | self.headers,
         )
         info: Root = json.loads(res.text)
-
+        if not info["data"]:
+            logger.warning(f"[Twitter] Could not find data for {url}")
+            return
         result = info["data"]["user"]["result"]
         if result["__typename"] == "UserUnavailable":
             context.create_result(

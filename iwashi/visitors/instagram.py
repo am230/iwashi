@@ -2,6 +2,7 @@ import re
 from typing import List, TypedDict
 
 import requests
+from loguru import logger
 
 from ..helper import BASE_HEADERS, HTTP_REGEX
 from ..visitor import Context, SiteVisitor
@@ -43,7 +44,7 @@ class Instagram(SiteVisitor):
         res = session.get(url)
         match = re.search(r"\"X-IG-App-ID\": ?\"(?P<id>\d{15})\"", res.text)
         if match is None:
-            print(f"No X-IG-App-ID found in {url}")
+            logger.warning(f"[Instagram] No X-IG-App-ID found in {url}")
             return
         session.headers["x-ig-app-id"] = match.group("id")
 
@@ -54,7 +55,7 @@ class Instagram(SiteVisitor):
             f"https://www.instagram.com/api/v1/users/web_profile_info/?username={id}",
         )
         if not info_res.ok or info_res.history:
-            print("[Instagram] Blocked by Instagram")
+            logger.warning("[Instagram] Blocked by Instagram")
             context.create_result(
                 "Instagram",
                 url=url,

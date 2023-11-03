@@ -13,7 +13,7 @@ from ..visitor import Context, SiteVisitor
 
 
 class Sketch(SiteVisitor):
-    NAME = "Pixiv"
+    NAME = "Sketch"
     URL_REGEX: re.Pattern = re.compile(
         HTTP_REGEX + r"sketch\.pixiv\.net/@(?P<id>\w+)", re.IGNORECASE
     )
@@ -33,7 +33,10 @@ class Sketch(SiteVisitor):
             logger.warning(f"__NEXT_DATA__ not found: {id}")
         next_data = json.loads(element.text)
         data: Root = json.loads(next_data["props"]["pageProps"]["initialState"])
-        live = tuple(data["live"]["lives"].values())[0]
+        lives = tuple(data["live"]["lives"].values())
+        if len(lives) == 0:
+            return
+        live = lives[0]
         users = data["users"]["users"]
         user_id = live["owner"]["user_id"]
         user = users[user_id]

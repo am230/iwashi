@@ -91,7 +91,7 @@ class SiteVisitor(abc.ABC):
             raise NotImplementedError()
         return self.URL_REGEX.match(url)
 
-    def normalize(self, url: str) -> str:
+    def normalize(self, url: str) -> str | None:
         return url
 
     @abc.abstractmethod

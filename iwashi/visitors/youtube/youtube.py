@@ -7,7 +7,7 @@ import bs4
 import requests
 from loguru import logger
 
-from ...helper import BASE_HEADERS, HTTP_REGEX
+from ...helper import BASE_HEADERS, HTTP_REGEX, retry
 from ...visitor import Context, SiteVisitor
 from .types import about, channels
 
@@ -72,14 +72,18 @@ class Youtube(SiteVisitor):
         type = next(filter(None, uri.path.split("/")))
         if type.startswith("@"):
             return f"https://www.youtube.com/{type}"
+        if type == "playlist":
+            return None
         if type == "watch":
             return self._channel_by_video(parse.parse_qs(uri.query)["v"][0])
         if type in ("channel", "user", "c"):
             return self._channel_by_url(url)
         return url
 
-    def _extract_initial_data(self, url: str) -> Any:
+    def _extract_initial_data(self, url: str) -> Any | None:
         about_res = requests.get(f"{url}/about", headers=BASE_HEADERS)
+        if about_res.status_code // 100 == 4:
+            return None
         soup = bs4.BeautifulSoup(about_res.text, "html.parser")
         for script in soup.find_all("script"):
             if script.text.startswith("var ytInitialData = "):
@@ -104,12 +108,14 @@ class Youtube(SiteVisitor):
             if endpoint.lower() != name:
                 continue
             if "content" not in tab["tabRenderer"]:
-                raise Exception("Could not find content")
+                raise Exception(f"Could not find content in {name}")
             return tab  # type: ignore
-        else:
-            raise Exception("Could not find about")
 
-    def _extract_links(self, root: about.Root) -> set[str]:
+    @retry(3)
+    def _extract_links(self, url: str) -> set[str]:
+        root: about.Root | None = self._extract_initial_data(f"{url}/about")
+        if root is None:
+            raise Exception("Could not find root")
         links = set()
         about_tab = self._extract_tab(root, "about")
         if about_tab is None:
@@ -139,7 +145,10 @@ class Youtube(SiteVisitor):
         return links
 
     def visit(self, url, context: Context):
-        about_data: about.Root = self._extract_initial_data(f"{url}/about")
+        about_data: about.Root | None = self._extract_initial_data(f"{url}/about")
+        if about_data is None:
+            logger.warning(f"[Youtube] Channel not found {url}")
+            return
 
         profile_picture = None
         if "avatar" in about_data["header"]["c4TabbedHeaderRenderer"]:
@@ -163,21 +172,29 @@ class Youtube(SiteVisitor):
             profile_picture=profile_picture,
         )
 
-        for link in self._extract_links(about_data):
+        for link in self._extract_links(url):
             context.visit(link)
-        channels_data: channels.Root = self._extract_initial_data(f"{url}/channels")
+        channels_data: channels.Root | None = self._extract_initial_data(
+            f"{url}/channels"
+        )
+        if channels_data is None:
+            return
         channels_tab = self._extract_tab(channels_data, "channels")
-        if channels_tab is None:
-            raise Exception("Could not find channels")
-        for section in channels_tab["tabRenderer"]["content"]["sectionListRenderer"][
-            "contents"
-        ]:
-            for item in section["itemSectionRenderer"]["contents"]:
-                if "gridRenderer" not in item:
-                    continue
-                for channel in item["gridRenderer"]["items"]:
-                    channel = channel["gridChannelRenderer"]
-                    channel_id = channel["navigationEndpoint"]["commandMetadata"][
-                        "webCommandMetadata"
-                    ]["url"].split("@")[-1]
-                    context.visit(f"https://www.youtube.com/@{channel_id}")
+        if channels_tab is not None:
+            for section in channels_tab["tabRenderer"]["content"][
+                "sectionListRenderer"
+            ]["contents"]:
+                for item in section["itemSectionRenderer"]["contents"]:
+                    if "gridRenderer" not in item:
+                        continue
+                    for channel in item["gridRenderer"]["items"]:
+                        if "continuationItemRenderer" in channel:
+                            logger.warning(
+                                "[Youtube] Currently not supported continuationItemRenderer"
+                            )
+                            continue
+                        channel = channel["gridChannelRenderer"]
+                        channel_id = channel["navigationEndpoint"]["commandMetadata"][
+                            "webCommandMetadata"
+                        ]["url"].split("@")[-1]
+                        context.visit(f"https://www.youtube.com/@{channel_id}")
