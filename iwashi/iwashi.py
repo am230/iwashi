@@ -47,7 +47,6 @@ class Iwashi(Visitor):
         context = context or Context(url=url, visitor=self)
         if self.is_visited(url):
             return None
-        self.mark_visited(url)
         for visitor in self.visitors:
             match = visitor.match(url, context)
             if match is None:
@@ -72,6 +71,7 @@ class Iwashi(Visitor):
             break
         else:
             context.create_result(site_name=parse_host(url), url=url, score=1.0)
+            self.mark_visited(url)
             if await self.try_redirect(url, context):
                 return context.result
             else:
