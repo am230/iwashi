@@ -10,10 +10,10 @@ from loguru import logger
 
 from .visitor import Result
 
-USER_AGENT = "Profile Link Generator (https://github.com/am230/iwashi)"
+USER_AGENT = "Profile Link Generator v2 (https://github.com/am230/iwashi)"
 BASE_HEADERS = {"User-Agent": USER_AGENT}
 HTTP_REGEX = "(https?://)?(www.)?"
-DEBUG = True
+DEBUG = False
 session = httpx.AsyncClient(headers=BASE_HEADERS, follow_redirects=True)
 
 
