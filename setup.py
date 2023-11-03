@@ -9,7 +9,7 @@ py_modules = [name]
 
 setup(
     name=name,
-    version="2.0.2",
+    version="2.0.3",
     keywords=["generator", "sns"],
     description="Link Tree Generator",
     long_description=long_description,

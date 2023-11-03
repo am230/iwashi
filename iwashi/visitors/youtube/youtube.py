@@ -171,27 +171,3 @@ class Youtube(SiteVisitor):
 
         for link in await self._extract_links(url):
             context.visit(link)
-        channels_data: channels.Root | None = await self._extract_initial_data(
-            f"{url}/channels"
-        )
-        if channels_data is None:
-            return
-        channels_tab = self._extract_tab(channels_data, "channels")
-        if channels_tab is not None:
-            for section in channels_tab["tabRenderer"]["content"][
-                "sectionListRenderer"
-            ]["contents"]:
-                for item in section["itemSectionRenderer"]["contents"]:
-                    if "gridRenderer" not in item:
-                        continue
-                    for channel in item["gridRenderer"]["items"]:
-                        if "continuationItemRenderer" in channel:
-                            logger.warning(
-                                "[Youtube] Currently not supported continuationItemRenderer"
-                            )
-                            continue
-                        channel = channel["gridChannelRenderer"]
-                        channel_id = channel["navigationEndpoint"]["commandMetadata"][
-                            "webCommandMetadata"
-                        ]["url"].split("@")[-1]
-                        context.visit(f"https://www.youtube.com/@{channel_id}")
