@@ -110,7 +110,7 @@ class Youtube(SiteVisitor):
 
         api_url, token = self.parse_token(data)
         about_res = await session.post(
-            f"https://www.youtube.com/{api_url}".replace("//", "/"),
+            f"https://www.youtube.com{api_url}",
             data=json.dumps(
                 {
                     "context": {
