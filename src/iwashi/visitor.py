@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import abc
 import re
 from dataclasses import dataclass, field
@@ -18,8 +20,8 @@ class Result:
     children: List["Result"] = field(default_factory=list)
     links: List["str"] = field(default_factory=list)
 
-    def to_list(self):
-        links = [self]
+    def to_list(self) -> List[Result]:
+        links: List[Result] = [self]
         for child in self.children:
             links.extend(child.to_list())
         return links
@@ -55,8 +57,6 @@ class Context:
         description: Optional[str] = None,
         profile_picture: Optional[str] = None,
     ) -> Result:
-        # if self.result is not None:
-        #     raise RuntimeError("Result already created")
         self.result = Result(
             site_name=site_name,
             url=url,
@@ -102,4 +102,5 @@ class SiteVisitor(abc.ABC):
 
     @abc.abstractmethod
     async def visit(self, url, context: Context, **kwargs) -> Optional[Result]:
+        raise NotImplementedError()
         raise NotImplementedError()

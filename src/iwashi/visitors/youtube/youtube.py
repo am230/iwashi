@@ -63,11 +63,24 @@ class Youtube(SiteVisitor):
             raise RuntimeError("Thumbnail not found")
         return url
 
-    def parse_token(self, data: ytinitialdata) -> Tuple[str, str]:
+    def parse_token(
+        self, data: ytinitialdata
+    ) -> Tuple[str | None, Tuple[str, str] | None]:
         # TODO: 地獄
-        runs = data["header"]["c4TabbedHeaderRenderer"]["headerLinks"][
+        first_link = None
+        c4TabbedHeaderRenderer = data["header"]["c4TabbedHeaderRenderer"]
+        if "headerLinks" not in c4TabbedHeaderRenderer:
+            return (first_link, None)
+        channelHeaderLinksViewModel = c4TabbedHeaderRenderer["headerLinks"][
             "channelHeaderLinksViewModel"
-        ]["more"]["commandRuns"]
+        ]
+        if "firstLink" in channelHeaderLinksViewModel:
+            first_link = channelHeaderLinksViewModel["firstLink"]["commandRuns"][0][
+                "onTap"
+            ]["innertubeCommand"]["urlEndpoint"]["url"]
+        if "more" not in channelHeaderLinksViewModel:
+            return (first_link, None)
+        runs = channelHeaderLinksViewModel["more"]["commandRuns"]
         command = runs[0]["onTap"]["innertubeCommand"]
         if "showEngagementPanelEndpoint" not in command:
             raise RuntimeError("token not found")
@@ -78,7 +91,15 @@ class Youtube(SiteVisitor):
         endpoint = contents2[0]["continuationItemRenderer"]["continuationEndpoint"]
         api_url = endpoint["commandMetadata"]["webCommandMetadata"]["apiUrl"]
         token = endpoint["continuationCommand"]["token"]
-        return api_url, token
+        return (first_link, (api_url, token))
+
+    def parse_redirect(self, url: str) -> str:
+        uri = parse.urlparse(url)
+        if uri.hostname != "www.youtube.com":
+            return url
+        if uri.path == "/redirect":
+            return parse.parse_qs(uri.query)["q"][0]
+        return url
 
     async def visit(self, url: str, context: Context):
         res = await session.get(url)
@@ -102,13 +123,18 @@ class Youtube(SiteVisitor):
         )
         context.create_result(
             site_name="Youtube",
-            url=f"https://www.youtube.com/{vanity_id}",
+            url=f"https://www.youtube.com/{vanity_id.split('@')[1]}",
             name=name,
             description=description,
             profile_picture=profile_picture,
         )
 
-        api_url, token = self.parse_token(data)
+        first_link, api = self.parse_token(data)
+        if first_link is not None:
+            context.visit(self.parse_redirect(first_link))
+        if api is None:
+            return
+        api_url, token = api
         about_res = await session.post(
             f"https://www.youtube.com{api_url}",
             data=json.dumps(
@@ -131,4 +157,5 @@ class Youtube(SiteVisitor):
             "aboutChannelViewModel"
         ]["links"]
         for link in links:
-            context.visit(link["channelExternalLinkViewModel"]["link"]["content"])
+            link_url = link["channelExternalLinkViewModel"]["link"]["content"]
+            context.visit(self.parse_redirect(link_url))
