@@ -1,5 +1,6 @@
 import json
 import re
+from pathlib import Path
 from typing import Tuple
 from urllib import parse
 
@@ -47,10 +48,8 @@ class Youtube(SiteVisitor):
         if res.status == 404:
             return None
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
-        element = soup.select_one("#channel-handle")
-        if element is None:
-            return None
-        return f"https://www.youtube.com/{element.text}"
+        data = self.extract_initial_data(soup)
+        return data["metadata"]["channelMetadataRenderer"]["vanityChannelUrl"]
 
     def parse_thumbnail(self, thumbnails: thumbnails) -> str:
         size = 0
@@ -106,15 +105,7 @@ class Youtube(SiteVisitor):
         if res.status // 100 != 2:
             raise RuntimeError(f"HTTP Error: {res.status}")
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
-        for script in soup.select("script"):
-            if script.string is None:
-                continue
-            match = re.search(r"ytInitialData\s*=\s*({.*?});", script.string)
-            if match is not None:
-                data: ytinitialdata = json.loads(match.group(1))
-                break
-        else:
-            raise RuntimeError("ytInitialData not found")
+        data = self.extract_initial_data(soup)
         vanity_id = data["metadata"]["channelMetadataRenderer"]["vanityChannelUrl"]
         name = data["metadata"]["channelMetadataRenderer"]["title"]
         description = data["metadata"]["channelMetadataRenderer"]["description"]
@@ -159,3 +150,15 @@ class Youtube(SiteVisitor):
         for link in links:
             link_url = link["channelExternalLinkViewModel"]["link"]["content"]
             context.visit(self.parse_redirect(link_url))
+
+    def extract_initial_data(self, soup: bs4.BeautifulSoup) -> ytinitialdata:
+        for script in soup.select("script"):
+            if script.string is None:
+                continue
+            match = re.search(r"ytInitialData\s*=\s*({.*?});", script.string)
+            if match is not None:
+                data: ytinitialdata = json.loads(match.group(1))
+                break
+        else:
+            raise RuntimeError("ytInitialData not found")
+        return data

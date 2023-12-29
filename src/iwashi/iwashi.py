@@ -41,9 +41,11 @@ class Iwashi(Visitor):
         return context.result
 
     async def visit(
-        self, url: str, context: Optional[Context] = None
+        self, _url: str, context: Optional[Context] = None
     ) -> Optional[Result]:
-        url = normalize_url(url)
+        url = normalize_url(_url)
+        if url is None:
+            return None
         context = context or Context(url=url, visitor=self)
         if self.is_visited(url):
             return None

@@ -5,23 +5,24 @@
 #   pre: false
 #   features: []
 #   all-features: false
+#   with-sources: false
 
 -e file:.
-aiohttp==3.9.1
+aiohttp==3.9.3
 aiosignal==1.3.1
-attrs==23.1.0
-beautifulsoup4==4.12.2
-bs4==0.0.1
+attrs==23.2.0
+beautifulsoup4==4.12.3
+bs4==0.0.2
 build==1.0.3
 click==8.1.7
 colorama==0.4.6
 frozenlist==1.4.1
 idna==3.6
 loguru==0.7.2
-multidict==6.0.4
+multidict==6.0.5
 packaging==23.2
 pyproject-hooks==1.0.0
-ruff==0.1.9
+ruff==0.2.1
 soupsieve==2.5
 typingdict==0.1.3
 win32-setctime==1.1.0
