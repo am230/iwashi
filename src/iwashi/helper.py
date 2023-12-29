@@ -47,6 +47,7 @@ URL_NORMALIZE_REGEX = r"(?P<protocol>https?)?:?\/?\/?(?P<domain>[^.]+\.[^\/]+)(?
 
 
 def normalize_url(url: str) -> str:
+    url = str(url).strip()
     match = re.match(URL_NORMALIZE_REGEX, url)
     if match is None:
         raise ValueError(f"Invalid URL: {url}")
