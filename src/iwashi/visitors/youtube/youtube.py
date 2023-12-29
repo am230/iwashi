@@ -123,7 +123,7 @@ class Youtube(SiteVisitor):
         )
         context.create_result(
             site_name="Youtube",
-            url=f"https://www.youtube.com/{vanity_id.split('@')[1]}",
+            url=f"https://www.youtube.com/@{vanity_id.split('@')[1]}",
             name=name,
             description=description,
             profile_picture=profile_picture,
