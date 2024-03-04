@@ -83,8 +83,10 @@ class Iwashi(Visitor):
 
     async def try_redirect(self, url: str, context: Context) -> bool:
         try:
-            res = await session.get(url, headers=BASE_HEADERS, allow_redirects=True)
-        except aiohttp.ClientError:
+            res = await session.get(
+                url, headers=BASE_HEADERS, allow_redirects=True, timeout=5
+            )
+        except aiohttp.ClientError | asyncio.TimeoutError:
             logger.warning(f"[Redirect] failed to redirect {url}")
             return False
         new_url = str(res.url)
