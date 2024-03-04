@@ -1,7 +1,7 @@
 import asyncio
 from typing import List, MutableSet, Optional
-
 import aiohttp
+
 from loguru import logger
 
 from .helper import BASE_HEADERS, DEBUG, normalize_url, parse_host, session
@@ -86,7 +86,12 @@ class Iwashi(Visitor):
             res = await session.get(
                 url, headers=BASE_HEADERS, allow_redirects=True, timeout=5
             )
-        except aiohttp.ClientError | asyncio.TimeoutError:
+        except aiohttp.ClientError as e:
+            logger.exception(e)
+            logger.warning(f"[Redirect] failed to redirect {url}")
+            return False
+        except asyncio.TimeoutError as e:
+            logger.exception(e)
             logger.warning(f"[Redirect] failed to redirect {url}")
             return False
         new_url = str(res.url)
