@@ -21,6 +21,8 @@ from .twitcasting import TwitCasting
 from .twitch import Twitch
 from .twitter import Twitter
 from .youtube import Youtube
+from .spotify import Spotify
+
 
 __all__ = [
     "Bandcamp",
@@ -46,4 +48,5 @@ __all__ = [
     "Twitch",
     "Twitter",
     "Youtube",
+    "Spotify",
 ]
