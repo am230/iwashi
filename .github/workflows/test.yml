@@ -36,7 +36,7 @@ jobs:
           pip install pytest pytest-cov
       - name: Run tests
         run: |
-          pytest --cov=iwashi tests/
+          rye run pytest --cov=iwashi tests/
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4.0.1
         with:
