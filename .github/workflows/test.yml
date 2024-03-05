@@ -25,7 +25,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .venv
-          key: pip-${{ runner.os }}-${{ hashFiles('**/requirements.lock') }}
+          key: pip-${{ runner.os }}-${{ hashFiles('**/requirements*.lock') }}
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
@@ -36,7 +36,7 @@ jobs:
           pip install pytest pytest-cov
       - name: Run tests
         run: |
-          rye run pytest --cov=iwashi tests/
+          rye run pytest tests/
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4.0.1
         with:
