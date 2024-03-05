@@ -3,7 +3,7 @@ import re
 import bs4
 from loguru import logger
 
-from iwashi.helper import HTTP_REGEX, normalize_url, session
+from iwashi.helper import HTTP_REGEX, normalize_url
 from iwashi.visitor import Context, SiteVisitor
 
 
@@ -13,7 +13,7 @@ class TwitCasting(SiteVisitor):
         HTTP_REGEX + r"twitcasting\.tv/(?P<id>[-\w]+)", re.IGNORECASE
     )
 
-    async def normalize(self, url: str) -> str:
+    async def normalize(self, context: Context, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
@@ -21,7 +21,7 @@ class TwitCasting(SiteVisitor):
 
     async def visit(self, url, context: Context, id: str):
         url = f"https://twitcasting.tv/{id}"
-        res = await session.get(
+        res = await context.session.get(
             url,
         )
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
@@ -43,7 +43,6 @@ class TwitCasting(SiteVisitor):
             "TwitCasting",
             url=url,
             name=name,
-            score=1.0,
             description=None,
             profile_picture=profile_picture,
         )

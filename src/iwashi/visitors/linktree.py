@@ -4,7 +4,7 @@ from typing import List, Optional, TypedDict, Union
 
 import bs4
 
-from iwashi.helper import HTTP_REGEX, session
+from iwashi.helper import HTTP_REGEX
 from iwashi.visitor import Context, SiteVisitor
 
 
@@ -14,14 +14,14 @@ class Linktree(SiteVisitor):
         HTTP_REGEX + r"linktr\.ee/(?P<id>\w+)", re.IGNORECASE
     )
 
-    async def normalize(self, url: str) -> str:
+    async def normalize(self, context: Context, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
         return f'https://linktr.ee/{match.group("id")}'
 
     async def visit(self, url, context: Context, id: str):
-        res = await session.get(
+        res = await context.session.get(
             f"https://linktr.ee/{id}",
         )
         if res.status != 200:
@@ -34,7 +34,6 @@ class Linktree(SiteVisitor):
         context.create_result(
             "Linktree",
             url=url,
-            score=1.0,
             description=info["description"],
             profile_picture=info["profilePictureUrl"],
         )

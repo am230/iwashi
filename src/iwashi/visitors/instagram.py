@@ -14,7 +14,7 @@ class Instagram(SiteVisitor):
         HTTP_REGEX + r"instagram\.com/(?P<id>\w+)", re.IGNORECASE
     )
 
-    async def normalize(self, url: str) -> str:
+    async def normalize(self, context: Context, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
@@ -40,17 +40,19 @@ class Instagram(SiteVisitor):
         )
 
         url = f"https://www.instagram.com/{id}/"
-        res = await session.get(url)
+        res = await context.session.get(url)
         match = re.search(r"\"X-IG-App-ID\": ?\"(?P<id>\d{15})\"", await res.text())
         if match is None:
             logger.warning(f"[Instagram] No X-IG-App-ID found in {url}")
             return
-        session.headers["x-ig-app-id"] = match.group("id")
+        context.session.headers["x-ig-app-id"] = match.group("id")
 
-        csrf_res = await session.get("https://www.instagram.com/ajax/bz?__d=dis")
-        session.headers["x-csrftoken"] = csrf_res.cookies["csrftoken"]
+        csrf_res = await context.session.get(
+            "https://www.instagram.com/ajax/bz?__d=dis"
+        )
+        session.headers.add("x-csrftoken", str(csrf_res.cookies["csrftoken"]))
 
-        info_res = await session.get(
+        info_res = await context.session.get(
             f"https://www.instagram.com/api/v1/users/web_profile_info/?username={id}",
         )
         if info_res.status // 100 != 2 or info_res.history:
@@ -59,15 +61,12 @@ class Instagram(SiteVisitor):
                 "Instagram",
                 url=url,
                 name=id,
-                score=0.0,
                 description="Blocked by Instagram",
             )
             return
         info: Root = await info_res.json()
         user = info["data"]["user"]
-        context.create_result(
-            "Instagram", url=url, score=1.0, description=user["biography"]
-        )
+        context.create_result("Instagram", url=url, description=user["biography"])
 
         for link in user["bio_links"]:
             context.visit(link["url"])

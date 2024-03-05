@@ -6,7 +6,7 @@ from typing import List, TypedDict
 
 import bs4
 
-from iwashi.helper import HTTP_REGEX, session
+from iwashi.helper import HTTP_REGEX
 from iwashi.visitor import Context, SiteVisitor
 
 
@@ -16,14 +16,14 @@ class Reddit(SiteVisitor):
         HTTP_REGEX + r"reddit\.com/user/(?P<id>[\w-]+)", re.IGNORECASE
     )
 
-    async def normalize(self, url: str) -> str:
+    async def normalize(self, context: Context, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
         return f'https://reddit.com/user/{match.group("id")}'
 
     async def visit(self, url, context: Context, id: str):
-        res = await session.get(
+        res = await context.session.get(
             f"https://www.reddit.com/user/{id}/about.json",
         )
         info: Root = await res.json()
@@ -32,12 +32,11 @@ class Reddit(SiteVisitor):
             "Reddit",
             url=url,
             name=info["data"]["name"],
-            score=1.0,
             description=info["data"]["subreddit"]["public_description"],
             profile_picture=info["data"]["icon_img"],
         )
 
-        res = await session.get(
+        res = await context.session.get(
             f"https://www.reddit.com/user/{id}/",
         )
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")

@@ -6,7 +6,7 @@ from typing import TypedDict
 
 import bs4
 
-from iwashi.helper import HTTP_REGEX, session
+from iwashi.helper import HTTP_REGEX
 from iwashi.visitor import Context, SiteVisitor
 
 
@@ -16,14 +16,14 @@ class Note(SiteVisitor):
         HTTP_REGEX + r"note\.com/(?P<user>[^/]+)", re.IGNORECASE
     )
 
-    async def normalize(self, url: str) -> str:
+    async def normalize(self, context: Context, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
         return f"https://note.com/{match.group('user')}"
 
     async def visit(self, url: str, context: Context, user: str):
-        res = await session.get(
+        res = await context.session.get(
             url,
         )
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
@@ -36,7 +36,6 @@ class Note(SiteVisitor):
         context.create_result(
             "Note",
             url=url,
-            score=1.0,
             name=data["headline"],
             description=data["description"],
             profile_picture=data["image"]["url"],

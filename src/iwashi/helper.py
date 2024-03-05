@@ -5,7 +5,6 @@ import string
 import time
 from typing import Any, Callable
 
-import aiohttp
 from loguru import logger
 
 from .visitor import Result
@@ -14,7 +13,6 @@ USER_AGENT = "Profile Link Generator (https://github.com/am230/iwashi)"
 BASE_HEADERS = {"User-Agent": USER_AGENT}
 HTTP_REGEX = "(https?://)?(www.)?"
 DEBUG = False
-session = aiohttp.ClientSession(headers=BASE_HEADERS)
 
 
 def print_result(
@@ -24,7 +22,6 @@ def print_result(
     print(f"{indent}{result.site_name}")
     print(f"{indent}│url  : {result.url}")
     print(f"{indent}│name : {result.title}")
-    print(f"{indent}│score: {result.score}")
     print(f"{indent}│links : {result.links}")
     if result.description:
         print(f"{indent}│description: " + result.description.replace("\n", "\\n"))
@@ -46,12 +43,18 @@ def random_string(length: int) -> str:
 URL_NORMALIZE_REGEX = r"(?P<protocol>https?)?:?\/?\/?(?P<domain>[^.]+\.[^\/]+)(?P<path>[^?#]+)?(?P<query>.+)?"
 
 
-def normalize_url(url: str) -> str | None:
+def normalize_url(url: str, https: bool = True) -> str | None:
     url = str(url).strip()
     match = re.match(URL_NORMALIZE_REGEX, url)
     if match is None:
         return None
-    return f"{match.group('protocol') or 'https'}://{match.group('domain')}{match.group('path') or ''}{match.group('query') or ''}"
+    protocol = match.group("protocol") or "https"
+    domain = match.group("domain")
+    path = match.group("path") or ""
+    query = match.group("query") or ""
+    if https:
+        protocol = "https"
+    return f"{protocol}://{domain}{path}{query}"
 
 
 def retry(

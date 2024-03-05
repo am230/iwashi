@@ -1,12 +1,11 @@
 import json
 import re
-from pathlib import Path
 from typing import Tuple
 from urllib import parse
 
 import bs4
 
-from iwashi.helper import HTTP_REGEX, session
+from iwashi.helper import HTTP_REGEX, normalize_url
 from iwashi.visitor import Context, SiteVisitor
 
 from .types import thumbnails, ytinitialdata
@@ -19,37 +18,41 @@ class Youtube(SiteVisitor):
         HTTP_REGEX + r"((m|gaming)\.)?(youtube\.com|youtu\.be)", re.IGNORECASE
     )
 
-    async def normalize(self, url: str) -> str | None:
+    async def normalize(self, context: Context, url: str) -> str | None:
         uri = parse.urlparse(url)
         if uri.hostname == "youtu.be":
-            return await self._channel_by_video(uri.path[1:])
+            return await self._channel_by_video(context, uri.path[1:])
         type = next(filter(None, uri.path.split("/")))
         if type.startswith("@"):
             return f"https://www.youtube.com/{type}"
         if type == "playlist":
             return None
         if type == "watch":
-            return await self._channel_by_video(parse.parse_qs(uri.query)["v"][0])
+            return await self._channel_by_video(
+                context, parse.parse_qs(uri.query)["v"][0]
+            )
         if type in ("channel", "user", "c"):
-            return await self._channel_by_url(url)
+            return await self._channel_by_url(context, url)
         return url
 
-    async def _channel_by_video(self, video_id: str) -> str | None:
-        res = await session.get(
+    async def _channel_by_video(self, context: Context, video_id: str) -> str | None:
+        res = await context.session.get(
             f"https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v={video_id}&format=json"
         )
         if res.status == 404:
             return None
         data = await res.json()
-        return data["author_url"]
+        return normalize_url(data["author_url"])
 
-    async def _channel_by_url(self, url: str) -> str | None:
-        res = await session.get(url)
+    async def _channel_by_url(self, context: Context, url: str) -> str | None:
+        res = await context.session.get(url)
         if res.status == 404:
             return None
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
         data = self.extract_initial_data(soup)
-        return data["metadata"]["channelMetadataRenderer"]["vanityChannelUrl"]
+        return normalize_url(
+            data["metadata"]["channelMetadataRenderer"]["vanityChannelUrl"]
+        )
 
     def parse_thumbnail(self, thumbnails: thumbnails) -> str:
         size = 0
@@ -101,7 +104,7 @@ class Youtube(SiteVisitor):
         return url
 
     async def visit(self, url: str, context: Context):
-        res = await session.get(url)
+        res = await context.session.get(url)
         if res.status // 100 != 2:
             raise RuntimeError(f"HTTP Error: {res.status}")
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
@@ -126,13 +129,13 @@ class Youtube(SiteVisitor):
         if api is None:
             return
         api_url, token = api
-        about_res = await session.post(
+        about_res = await context.session.post(
             f"https://www.youtube.com{api_url}",
             data=json.dumps(
                 {
                     "context": {
                         "client": {
-                            "userAgent": session.headers["User-Agent"],
+                            "userAgent": context.session.headers["User-Agent"],
                             "clientName": "WEB",
                             "clientVersion": "2.20231219.04.00",
                         }

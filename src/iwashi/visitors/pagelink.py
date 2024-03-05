@@ -13,7 +13,7 @@ class PageLink(SiteVisitor):
         HTTP_REGEX + r"(?P<host>\w+)\.page\.link/\?link=(?P<link>[^&]+)", re.IGNORECASE
     )
 
-    async def normalize(self, url: str) -> str:
+    async def normalize(self, context: Context, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
@@ -23,6 +23,5 @@ class PageLink(SiteVisitor):
         context.create_result(
             "PageLink",
             url=url,
-            score=1.0,
         )
         context.visit(urllib.parse.unquote(link))

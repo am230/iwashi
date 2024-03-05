@@ -4,7 +4,7 @@ from typing import List, TypedDict
 
 from loguru import logger
 
-from iwashi.helper import HTTP_REGEX, cache_async, session
+from iwashi.helper import HTTP_REGEX
 from iwashi.visitor import Context, SiteVisitor
 
 
@@ -20,38 +20,46 @@ class Twitter(SiteVisitor):
             "accept-encoding": "gzip, deflate, br",
             "accept-language": "ja",
         }
+        self.bearer_token: str | None = None
+        self.guest_token: str | None = None
 
-    async def normalize(self, url: str) -> str:
+    async def normalize(self, context: Context, url: str) -> str:
         match = self.URL_REGEX.search(url)
         if match is None:
             return url
         return f'https://twitter.com/{match.group("id")}'
 
-    @cache_async
-    async def fetch_authorization(self) -> str:
-        res = await session.get(
+    async def fetch_authorization(self, context: Context) -> str:
+        if self.bearer_token:
+            return self.bearer_token
+        res = await context.session.get(
             "https://abs.twimg.com/responsive-web/client-web/main.28fc48ca.js"
         )
         match = re.search('(AAAAA.*?)"', await res.text())
         assert match
-        return "Bearer " + match.group(1)
+        bearer_token = "Bearer " + match.group(1)
+        self.bearer_token = bearer_token
+        return bearer_token
 
-    @cache_async
-    async def fetch_guest_token(self) -> str:
-        res = await session.post(
+    async def fetch_guest_token(self, context: Context) -> str:
+        if self.guest_token:
+            return self.guest_token
+        res = await context.session.post(
             "https://api.twitter.com/1.1/guest/activate.json",
             headers=self.headers,
         )
-        return (await res.json())["guest_token"]
+        data = await res.json()
+        self.guest_token = data["guest_token"]
+        return data["guest_token"]
 
-    async def setup_headers(self) -> None:
-        self.headers["authorization"] = await self.fetch_authorization()
-        self.headers["x-guest-token"] = await self.fetch_guest_token()
+    async def setup_headers(self, context: Context) -> None:
+        self.headers["authorization"] = await self.fetch_authorization(context)
+        self.headers["x-guest-token"] = await self.fetch_guest_token(context)
 
     async def visit(self, url, context: Context, id: str):
-        await self.setup_headers()
+        await self.setup_headers(context)
 
-        res = await session.get(
+        res = await context.session.get(
             "https://api.twitter.com/graphql/rePnxwe9LZ51nQ7Sn_xN_A/UserByScreenName",
             params={
                 "variables": json.dumps(
@@ -79,9 +87,7 @@ class Twitter(SiteVisitor):
             return
         result = info["data"]["user"]["result"]
         if result["__typename"] == "UserUnavailable":
-            context.create_result(
-                "Twitter", url=url, name="<UserUnavailable>", score=1.0
-            )
+            context.create_result("Twitter", url=url, name="<UserUnavailable>")
             return
 
         data = result["legacy"]
@@ -89,7 +95,6 @@ class Twitter(SiteVisitor):
             "Twitter",
             url=url,
             name=data["name"],
-            score=1.0,
             description=data["description"],
             profile_picture=data["profile_image_url_https"],
         )

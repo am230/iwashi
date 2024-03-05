@@ -4,7 +4,7 @@ from typing import List, TypedDict
 
 from loguru import logger
 
-from iwashi.helper import HTTP_REGEX, session
+from iwashi.helper import HTTP_REGEX
 from iwashi.visitor import Context, SiteVisitor
 
 
@@ -14,7 +14,7 @@ class Soundcloud(SiteVisitor):
         HTTP_REGEX + r"soundcloud\.com/(?P<id>[-\w]+)", re.IGNORECASE
     )
 
-    async def normalize(self, url: str) -> str:
+    async def normalize(self, context: Context, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
@@ -22,7 +22,7 @@ class Soundcloud(SiteVisitor):
 
     async def visit(self, url, context: Context, id: str):
         url = f"https://soundcloud.com/{id}"
-        res = await session.get(
+        res = await context.session.get(
             url,
         )
         info_json = re.search(
@@ -43,12 +43,11 @@ class Soundcloud(SiteVisitor):
             "Soundcloud",
             url=url,
             name=info["data"]["username"],
-            score=1.0,
             description=info["data"]["description"],
             profile_picture=info["data"]["avatar_url"],
         )
 
-        client_id_res = await session.get(
+        client_id_res = await context.session.get(
             "https://a-v2.sndcdn.com/assets/0-bf97f26a.js",
         )
         match = re.search(
@@ -82,7 +81,7 @@ class Soundcloud(SiteVisitor):
             "app_locale": "en",
         }
 
-        profile_res = await session.get(
+        profile_res = await context.session.get(
             f'https://api-v2.soundcloud.com/users/{info["data"]["urn"]}/web-profiles',
             params=params,
             headers=headers,

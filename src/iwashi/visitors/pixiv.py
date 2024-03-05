@@ -5,7 +5,7 @@ from typing import Dict, List, Optional, TypeAlias, TypedDict
 import bs4
 from loguru import logger
 
-from iwashi.helper import HTTP_REGEX, session
+from iwashi.helper import HTTP_REGEX
 from iwashi.visitor import Context, SiteVisitor
 
 
@@ -15,14 +15,14 @@ class Pixiv(SiteVisitor):
         HTTP_REGEX + r"pixiv\.net/users/(?P<id>\d+)", re.IGNORECASE
     )
 
-    async def normalize(self, url: str) -> str:
+    async def normalize(self, context: Context, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
         return f'https://pixiv.net/users/{match.group("id")}'
 
     async def visit(self, url, context: Context, id: str):
-        res = await session.get(
+        res = await context.session.get(
             f"https://pixiv.net/users/{id}",
         )
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
@@ -43,7 +43,6 @@ class Pixiv(SiteVisitor):
                 "Pixiv",
                 url=url,
                 name=user["name"],
-                score=1.0,
                 description=user["comment"],
                 profile_picture=user["imageBig"],
             )
@@ -53,12 +52,12 @@ class Pixiv(SiteVisitor):
                 for link in user["social"].values():
                     context.visit(link["url"])
 
-            resp = await session.get(
+            resp = await context.session.get(
                 f"https://sketch.pixiv.net/api/pixiv/user/posts/latest?user_id={id}"
             )
             if resp.status == 200:
-                data = resp.json()["data"]
-                context.visit(data["user"]["url"])
+                data = await resp.json()
+                context.visit(data["data"]["user"]["url"])
 
 
 class Background(TypedDict):

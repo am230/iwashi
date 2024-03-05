@@ -3,7 +3,7 @@ from typing import List, TypedDict
 
 from loguru import logger
 
-from iwashi.helper import HTTP_REGEX, session
+from iwashi.helper import HTTP_REGEX
 from iwashi.visitor import Context, SiteVisitor
 
 
@@ -13,7 +13,7 @@ class Fanbox(SiteVisitor):
         HTTP_REGEX + r"(?P<id>[\w-]+)\.fanbox\.cc", re.IGNORECASE
     )
 
-    async def normalize(self, url: str) -> str:
+    async def normalize(self, context: Context, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
@@ -21,7 +21,7 @@ class Fanbox(SiteVisitor):
 
     async def visit(self, url, context: Context, id: str):
         url = f"https://{id}.fanbox.cc"
-        creator_res = await session.get(
+        creator_res = await context.session.get(
             f"https://api.fanbox.cc/creator.get?creatorId={id}",
             headers={
                 "accept": "application/json",
@@ -41,7 +41,6 @@ class Fanbox(SiteVisitor):
             "Fanbox",
             url=url,
             name=info["body"]["user"]["name"],
-            score=1.0,
             description=info["body"]["description"],
             profile_picture=info["body"]["user"]["iconUrl"],
         )

@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from typing import List, TypedDict
 
-from iwashi.helper import HTTP_REGEX, session
+from iwashi.helper import HTTP_REGEX
 from iwashi.visitor import Context, SiteVisitor
 
 
@@ -13,7 +13,7 @@ class Misskey(SiteVisitor):
         HTTP_REGEX + r"(?P<host>[^.]+\.[^\/]+)/channels/(?P<channek_id>[\w]+)",
     )
 
-    async def normalize(self, url: str) -> str:
+    async def normalize(self, context: Context, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
@@ -21,7 +21,7 @@ class Misskey(SiteVisitor):
 
     async def visit(self, url, context: Context, host: str, channel_id: str):
         url = f"https://{host}/api/channels/show"
-        res = await session.post(
+        res = await context.session.post(
             url,
             json={"channelId": channel_id},
         )
@@ -30,7 +30,6 @@ class Misskey(SiteVisitor):
             "Misskey",
             url=f"https://{host}/channels/{channel_id}",
             name=info["name"],
-            score=1.0,
             description=info["description"],
             profile_picture=info["bannerUrl"],
         )

@@ -5,7 +5,7 @@ from typing import List, TypedDict
 import bs4
 from loguru import logger
 
-from iwashi.helper import HTTP_REGEX, session
+from iwashi.helper import HTTP_REGEX
 from iwashi.visitor import Context, SiteVisitor
 
 
@@ -16,12 +16,12 @@ class Nicovideo(SiteVisitor):
         re.IGNORECASE,
     )
 
-    async def normalize(self, url: str) -> str:
+    async def normalize(self, context: Context, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
         if match.group("path") == "mylist":
-            res = await session.get(
+            res = await context.session.get(
                 f'https://www.nicovideo.jp/mylist/{match.group("id")}'
             )
             return await self.normalize(str(res.url))
@@ -29,7 +29,7 @@ class Nicovideo(SiteVisitor):
 
     async def visit(self, url, context: Context, path: str, id: str):
         url = f"https://www.nicovideo.jp/user/{id}"
-        res = await session.get(
+        res = await context.session.get(
             f"https://www.nicovideo.jp/user/{id}",
         )
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
@@ -43,7 +43,6 @@ class Nicovideo(SiteVisitor):
         context.create_result(
             "Nicovideo",
             url=url,
-            score=1.0,
             name=user["nickname"],
             description=user["description"],
             profile_picture=user["icons"]["large"],

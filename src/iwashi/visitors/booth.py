@@ -2,7 +2,7 @@ import re
 
 import bs4
 
-from iwashi.helper import HTTP_REGEX, session
+from iwashi.helper import HTTP_REGEX
 from iwashi.visitor import Context, SiteVisitor
 
 
@@ -12,14 +12,14 @@ class Booth(SiteVisitor):
         HTTP_REGEX + r"(?P<id>[\w-]+)\.booth\.pm", re.IGNORECASE
     )
 
-    async def normalize(self, url: str) -> str:
+    async def normalize(self, context: Context, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
         return f'https://{match.group("id")}.booth.pm'
 
     async def visit(self, url, context: Context, id: str):
-        res = await session.get(f"https://{id}.booth.pm")
+        res = await context.session.get(f"https://{id}.booth.pm")
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
         name_element: bs4.Tag = soup.find(
             attrs={"class": "home-link-container__nickname"}
@@ -37,7 +37,6 @@ class Booth(SiteVisitor):
             "Booth",
             url=url,
             name=name.text if name is not None else None,
-            score=1.0,
             description=description.text if description is not None else None,
             profile_picture=avater_element.attrs["style"].split("url(")[1].split(")")[0]
             if avater_element is not None

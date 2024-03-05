@@ -7,7 +7,7 @@ from typing import List, TypedDict
 import bs4
 from loguru import logger
 
-from iwashi.helper import HTTP_REGEX, normalize_url, session
+from iwashi.helper import HTTP_REGEX, normalize_url
 from iwashi.visitor import Context, SiteVisitor
 
 
@@ -17,7 +17,7 @@ class TikTok(SiteVisitor):
         HTTP_REGEX + r"tiktok\.com/@(?P<id>[-\w]+)", re.IGNORECASE
     )
 
-    async def normalize(self, url: str) -> str:
+    async def normalize(self, context: Context, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
@@ -25,7 +25,7 @@ class TikTok(SiteVisitor):
 
     async def visit(self, url, context: Context, id: str):
         url = f"https://tiktok.com/@{id}"
-        res = await session.get(
+        res = await context.session.get(
             url,
         )
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
@@ -48,7 +48,6 @@ class TikTok(SiteVisitor):
             "TikTok",
             url=url,
             name=data["name"],
-            score=1.0,
             description=data["description"],
             profile_picture=profile_picture,
         )

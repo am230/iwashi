@@ -5,7 +5,7 @@ from typing import Dict, List, TypedDict, Union
 
 import bs4
 
-from iwashi.helper import BASE_HEADERS, HTTP_REGEX, session
+from iwashi.helper import BASE_HEADERS, HTTP_REGEX
 from iwashi.visitor import Context, SiteVisitor
 
 
@@ -15,14 +15,14 @@ class Mirrativ(SiteVisitor):
         HTTP_REGEX + r"mirrativ.com/user/(?P<id>[\d]+)", re.IGNORECASE
     )
 
-    async def normalize(self, url: str) -> str:
+    async def normalize(self, context: Context, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
         return f'https://mirrativ.com/user/{match.group("id")}'
 
     async def fetch_scrf_token(self) -> str | None:
-        res = await session.get(
+        res = await context.session.get(
             "https://www.mirrativ.com/",
         )
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
@@ -39,7 +39,7 @@ class Mirrativ(SiteVisitor):
             "x-csrf-token": self.fetch_scrf_token(),
         }
 
-        res = await session.get(
+        res = await context.session.get(
             "https://www.mirrativ.com/api/user/profile",
             params={
                 "user_id": id,
@@ -51,7 +51,6 @@ class Mirrativ(SiteVisitor):
             "Mirrativ",
             url=url,
             name=info["name"],
-            score=1.0,
             description=info["description"],
             profile_picture=info["profile_image_url"],
         )

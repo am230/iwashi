@@ -6,7 +6,7 @@ from typing import Dict, List, Literal, TypedDict
 
 import bs4
 
-from iwashi.helper import HTTP_REGEX, session, BASE_HEADERS
+from iwashi.helper import HTTP_REGEX, BASE_HEADERS
 from iwashi.visitor import Context, SiteVisitor
 
 
@@ -25,14 +25,14 @@ class Spotify(SiteVisitor):
         data = Session(**json.loads(script.text))
         return data["accessToken"]
 
-    async def normalize(self, url: str) -> str:
+    async def normalize(self, context: Context, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
         return f"https://open.spotify.com/artist/{match.group('artist_id')}"
 
     async def visit(self, url, context: Context, artist_id: str):
-        response = await session.get(url, headers=BASE_HEADERS)
+        response = await context.session.get(url, headers=BASE_HEADERS)
         soup = bs4.BeautifulSoup(await response.text(), "html.parser")
         access_token = await self.extract_access_token(soup)
 
@@ -52,7 +52,7 @@ class Spotify(SiteVisitor):
             ),
             "extensions": '{"persistedQuery":{"version":1,"sha256Hash":"da986392124383827dc03cbb3d66c1de81225244b6e20f8d78f9f802cc43df6e"}}',
         }
-        response = await session.get(
+        response = await context.session.get(
             "https://api-partner.spotify.com/pathfinder/v1/query",
             params=params,
             headers=headers | BASE_HEADERS,
@@ -71,7 +71,6 @@ class Spotify(SiteVisitor):
             "Spotify",
             url=url,
             name=profile["name"],
-            score=1.0,
             description=profile["biography"]["text"],
             profile_picture=avatar_url,
         )

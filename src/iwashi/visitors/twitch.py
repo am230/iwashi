@@ -3,7 +3,7 @@ from typing import List, TypedDict
 
 from loguru import logger
 
-from iwashi.helper import HTTP_REGEX, session
+from iwashi.helper import HTTP_REGEX
 from iwashi.visitor import Context, SiteVisitor
 
 
@@ -13,7 +13,7 @@ class Twitch(SiteVisitor):
         HTTP_REGEX + r"twitch\.tv/(?P<id>\w+)", re.IGNORECASE
     )
 
-    async def normalize(self, url: str) -> str:
+    async def normalize(self, context: Context, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
@@ -22,7 +22,7 @@ class Twitch(SiteVisitor):
     async def visit(self, url, context: Context, id: str):
         url = f"https://www.twitch.tv/{id}"
 
-        res = await session.get(
+        res = await context.session.get(
             url,
         )
         match = re.search(
@@ -34,7 +34,7 @@ class Twitch(SiteVisitor):
             return
         token = match.group("token")
 
-        res = await session.post(
+        res = await context.session.post(
             "https://gql.twitch.tv/gql",
             json=[
                 {
@@ -62,7 +62,6 @@ class Twitch(SiteVisitor):
             "Twitch",
             url=url,
             name=user["displayName"],
-            score=1.0,
             description=user["description"],
             profile_picture=user["profileImageURL"],
         )

@@ -7,7 +7,7 @@ from typing import Dict, List, TypedDict, Union
 import bs4
 from loguru import logger
 
-from iwashi.helper import HTTP_REGEX, session
+from iwashi.helper import HTTP_REGEX
 from iwashi.visitor import Context, SiteVisitor
 
 
@@ -17,14 +17,14 @@ class LitLink(SiteVisitor):
         HTTP_REGEX + r"lit\.link/(?P<id>\w+)", re.IGNORECASE
     )
 
-    async def normalize(self, url: str) -> str:
+    async def normalize(self, context: Context, url: str) -> str:
         match = self.URL_REGEX.match(url)
         if match is None:
             return url
         return f'https://lit.link/{match.group("id")}'
 
     async def visit(self, url, context: Context, id: str):
-        res = await session.get(
+        res = await context.session.get(
             f"https://lit.link/{id}",
         )
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
@@ -39,7 +39,6 @@ class LitLink(SiteVisitor):
             "LitLink",
             url=url,
             name=profile["name"],
-            score=1.0,
             description=profile["profileText"],
             profile_picture=profile["pictureUrl"],
         )

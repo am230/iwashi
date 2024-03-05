@@ -5,20 +5,21 @@ import re
 from dataclasses import dataclass, field
 from typing import List, Optional, Protocol
 
+import aiohttp
+
 HTTP_REGEX = "(https?://)?(www.)?"
 
 
 @dataclass
 class Result:
     url: str
-    score: float
     site_name: Optional[str]
     title: Optional[str]
     description: Optional[str]
     profile_picture: Optional[str]
 
-    children: List["Result"] = field(default_factory=list)
-    links: List["str"] = field(default_factory=list)
+    children: List[Result] = field(default_factory=list)
+    links: List[str] = field(default_factory=list)
 
     def to_list(self) -> List[Result]:
         links: List[Result] = [self]
@@ -28,31 +29,45 @@ class Result:
 
 
 class Visitor(Protocol):
-    async def visit(self, url: str, context: "Context", **kwargs) -> Result:
-        ...
-
-    async def tree(self, url: str, context: "Context", **kwargs) -> Result:
-        ...
-
-    def queue(self, url: str, context: "Context") -> None:
+    async def visit(self, url: str, context: Context, **kwargs) -> Result:
         ...
 
     def mark_visited(self, url: str) -> None:
         ...
 
+    def push(self, url: str, context: Context) -> None:
+        ...
 
+
+class FakeVisitor(Visitor):
+    def __init__(self):
+        self.visited = []
+
+    async def visit(self, url, context, **kwargs):
+        self.visited.append(url)
+
+    async def tree(self, url, context, **kwargs):
+        raise NotImplementedError
+
+    def push(self, url, context):
+        raise NotImplementedError
+
+    def mark_visited(self, url):
+        raise NotImplementedError
+
+
+@dataclass
 class Context:
-    def __init__(self, url: str, visitor: Visitor, parent: Optional["Context"] = None):
-        self.url = url
-        self.visitor = visitor
-        self.parent = parent
-        self.result: Optional[Result] = None
+    session: aiohttp.ClientSession
+    url: str
+    visitor: Visitor
+    parent: Optional[Context] = None
+    result: Optional[Result] = None
 
     def create_result(
         self,
         site_name: str,
         url: str,
-        score: float = 1.0,
         name: Optional[str] = None,
         description: Optional[str] = None,
         profile_picture: Optional[str] = None,
@@ -60,7 +75,6 @@ class Context:
         self.result = Result(
             site_name=site_name,
             url=url,
-            score=score,
             title=name,
             description=description,
             profile_picture=profile_picture,
@@ -78,14 +92,11 @@ class Context:
     def mark_visited(self, url: str) -> None:
         self.visitor.mark_visited(url)
 
-    def create(self, url: str) -> "Context":
-        return Context(url=url, visitor=self.visitor, parent=self)
+    def new_context(self, url: str) -> Context:
+        return Context(session=self.session, url=url, visitor=self.visitor, parent=self)
 
-    def visit(self, url: str) -> None:
-        self.visitor.queue(url, self.create(url))
-
-    def __repr__(self) -> str:
-        return f"Context(url={self.url!r})"
+    def push(self, url: str) -> None:
+        self.visitor.push(url, self)
 
 
 class SiteVisitor(abc.ABC):
@@ -97,10 +108,9 @@ class SiteVisitor(abc.ABC):
             raise NotImplementedError()
         return self.URL_REGEX.match(url)
 
-    async def normalize(self, url: str) -> str | None:
+    async def normalize(self, context: Context, url: str) -> str | None:
         return url
 
     @abc.abstractmethod
     async def visit(self, url, context: Context, **kwargs) -> Optional[Result]:
-        raise NotImplementedError()
         raise NotImplementedError()
