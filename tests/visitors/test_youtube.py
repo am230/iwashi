@@ -11,20 +11,33 @@ youtube = Youtube()
 async def test_normalize():
     visitor = FakeVisitor()
     session = aiohttp.ClientSession()
-    context = Context(
-        session=session, url="https://www.youtube.com/@TomScottGo", visitor=visitor
-    )
-    assert (
-        await youtube.normalize(context, "https://www.youtube.com/@TomScottGo")
-        == "https://www.youtube.com/@TomScottGo"
-    )
-    assert (
-        await youtube.normalize(context, "https://www.youtube.com/c/TomScottGo")
-        == "https://www.youtube.com/@TomScottGo"
-    )
-    assert (
-        await youtube.normalize(
-            context, "https://www.youtube.com/channel/UCBa659QWEk1AI4Tg--mrJ2A"
+
+    for url in {
+        "https://www.youtube.com/@TomScottGo",
+        "https://www.youtube.com/c/TomScottGo",
+        "https://youtu.be/7DKv5H5Frt0",
+        "https://www.youtube.com/watch?v=7DKv5H5Frt0",
+    }:
+        context = Context(session=session, url=url, visitor=visitor)
+        assert (
+            await youtube.normalize(context, url)
+            == "https://www.youtube.com/@TomScottGo"
         )
-        == "https://www.youtube.com/@TomScottGo"
-    )
+
+
+@pytest.mark.asyncio
+async def test_visit():
+    visitor = FakeVisitor()
+    session = aiohttp.ClientSession()
+
+    url = "https://www.youtube.com/@TomScottGo"
+    context = Context(session=session, url=url, visitor=visitor)
+    await youtube.visit(url, context)
+    result = context.result
+    assert result
+    assert result.url == url
+    assert result.site_name == "YouTube"
+    assert result.title == "Tom Scott"
+    assert result.description is not None
+    assert result.profile_picture is not None
+    assert visitor.queue == ["https://www.tomscott.com/"]
