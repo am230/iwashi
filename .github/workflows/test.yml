@@ -1,0 +1,44 @@
+name: test
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      # IMPORTANT: this permission is mandatory for trusted publishing
+      id-token: write
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.x"
+      - name: Install rye
+        uses: eifinger/setup-rye@v1
+        with:
+          version: "0.19.0"
+          enable-cache: true
+          cache-prefix: "rye"
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: pip-${{ runner.os }}-${{ hashFiles('**/requirements.lock') }}
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          rye sync
+      - name: Install test dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pytest pytest-cov
+      - name: Run tests
+        run: |
+          pytest --cov=iwashi tests/
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: am230/iwashi
