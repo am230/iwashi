@@ -53,16 +53,16 @@ class TikTok(SiteVisitor):
         )
 
 
-Interactiontype = TypedDict("interactionType", {"@type": "str"})
-InteractionstatisticItem = TypedDict(
-    "interactionStatistic_item",
+InteractionType = TypedDict("InteractionType", {"@type": "str"})
+InteractionStatisticItem = TypedDict(
+    "InteractionStatisticItem",
     {
         "@type": "str",
-        "interactionType": "Interactiontype",
+        "interactionType": "InteractionType",
         "userInteractionCount": "int",
     },
 )
-Mainentityofpage = TypedDict("mainEntityOfPage", {"@id": "str", "@type": "str"})
+Mainentityofpage = TypedDict("Mainentityofpage", {"@id": "str", "@type": "str"})
 Root = TypedDict(
     "Root",
     {
@@ -74,7 +74,7 @@ Root = TypedDict(
         "url": "str",
         "knowsLanguage": "str",
         "nationality": "str",
-        "interactionStatistic": "List[InteractionstatisticItem]",
+        "interactionStatistic": "List[InteractionStatisticItem]",
         "mainEntityOfPage": "Mainentityofpage",
     },
 )
