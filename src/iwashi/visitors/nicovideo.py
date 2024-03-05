@@ -24,7 +24,7 @@ class Nicovideo(SiteVisitor):
             res = await context.session.get(
                 f'https://www.nicovideo.jp/mylist/{match.group("id")}'
             )
-            return await self.normalize(str(res.url))
+            return await self.normalize(context, str(res.url))
         return f'nicovideo.jp/user/{match.group("id")}'
 
     async def visit(self, url, context: Context, path: str, id: str):
@@ -33,7 +33,7 @@ class Nicovideo(SiteVisitor):
             f"https://www.nicovideo.jp/user/{id}",
         )
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
-        element: bs4.Tag = soup.find(attrs={"id": "js-initial-userpage-data"})  # type: ignore
+        element = soup.select_one("#js-initial-userpage-data")
         if element is None:
             logger.warning(f"[Nicovideo] {id} not found")
             return None

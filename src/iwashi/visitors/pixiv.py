@@ -26,9 +26,9 @@ class Pixiv(SiteVisitor):
             f"https://pixiv.net/users/{id}",
         )
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
-        meta_element: bs4.Tag = soup.find(
-            "meta", attrs={"name": "preload-data", "id": "meta-preload-data"}
-        )  # type: ignore
+        meta_element = soup.select_one(
+            'meta[name="preload-data"][id="meta-preload-data"]'
+        )
         if meta_element is None:
             logger.warning(f"[Pixiv] meta-preload-data not found: {id}")
             return

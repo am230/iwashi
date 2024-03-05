@@ -28,10 +28,10 @@ class Sketch(SiteVisitor):
             f"https://sketch.pixiv.net/@{id}",
         )
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
-        # __NEXT_DATA__
-        element: bs4.Tag = soup.find(attrs={"id": "__NEXT_DATA__"})  # type: ignore
+        element = soup.select_one("script#__NEXT_DATA__")
         if element is None:
             logger.warning(f"__NEXT_DATA__ not found: {id}")
+            return
         next_data = json.loads(element.text)
         data: Root = json.loads(next_data["props"]["pageProps"]["initialState"])
         lives = tuple(data["live"]["lives"].values())
@@ -211,7 +211,7 @@ class UserInfo(TypedDict):
 
 
 Usercolors = TypedDict(
-    "userColors",
+    "Usercolors",
     {"15241365": "str", "17391869": "str", "30087679": "str", "50150007": "str"},
 )
 

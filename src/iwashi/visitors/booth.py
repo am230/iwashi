@@ -21,17 +21,15 @@ class Booth(SiteVisitor):
     async def visit(self, url, context: Context, id: str):
         res = await context.session.get(f"https://{id}.booth.pm")
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
-        name_element: bs4.Tag = soup.find(
-            attrs={"class": "home-link-container__nickname"}
-        )  # type: ignore
+        name_element = soup.select_one(".home-link-container__nickname")
         name = name_element is not None and name_element.find("a") or None
-        desc_element: bs4.Tag = soup.find(attrs={"class": "description"})  # type: ignore
+        desc_element = soup.select_one(".description")
         description = (
             desc_element is not None
             and desc_element.find(attrs={"v-html": "formattedDescription"})
             or None
         )
-        avater_element: bs4.Tag = soup.find(attrs={"class": "avatar-image"})  # type: ignore
+        avater_element = soup.select_one(".avatar-image")
 
         context.create_result(
             "Booth",
@@ -43,7 +41,11 @@ class Booth(SiteVisitor):
             else None,
         )
 
-        for link in desc_element.find_all(attrs={"class": "shop-contacts__link"}):
-            link: bs4.Tag = link.find("a")  # type: ignore
-            if link.has_attr("href"):
+        if desc_element is None:
+            return
+        for link in desc_element.select(".shop-contacts__link"):
+            link = link.select_one("a")
+            if link is None:
+                continue
+            if "href" in link.attrs:
                 context.enqueue(link.attrs["href"])
