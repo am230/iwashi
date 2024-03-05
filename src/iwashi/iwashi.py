@@ -1,5 +1,5 @@
 import asyncio
-from typing import Awaitable, List, MutableSet, Optional
+from typing import List, MutableSet, Optional
 import aiohttp
 
 from loguru import logger
@@ -12,7 +12,7 @@ class Iwashi(Visitor):
     def __init__(self) -> None:
         self.visitors: List[SiteVisitor] = []
         self.visited: MutableSet[str] = set()
-        self.tasks: List[Awaitable] = []
+        self.tasks: List[asyncio.Task] = []
         self.session = aiohttp.ClientSession(headers=BASE_HEADERS)
 
     def add_visitor(self, visitor: SiteVisitor) -> None:
@@ -31,13 +31,16 @@ class Iwashi(Visitor):
     async def tree(self, url: str, context: Optional[Context] = None) -> Result | None:
         context = context or Context(session=self.session, url=url, visitor=self)
         context = context.new_context(url)
-        await self.visit(url, context)
+        result = await self.visit(url, context)
         while self.tasks:
             await self.tasks.pop()
-        return context.result
+
+        return result
 
     def push(self, url: str, context: Context) -> None:
-        self.tasks.append(self.visit(url, context))
+        coro = self.visit(url, context)
+        task = asyncio.create_task(coro)
+        self.tasks.append(task)
 
     async def visit(
         self, _url: str, context: Optional[Context] = None
@@ -45,7 +48,10 @@ class Iwashi(Visitor):
         url = normalize_url(_url)
         if url is None:
             return None
-        context = context or Context(session=self.session, url=url, visitor=self)
+        if context is None:
+            context = Context(session=self.session, url=url, visitor=self)
+        else:
+            context = context.new_context(url)
         if self.is_visited(url):
             return None
         for visitor in self.visitors:
