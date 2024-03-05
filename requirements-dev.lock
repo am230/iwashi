@@ -17,6 +17,7 @@ bs4==0.0.2
 build==1.0.3
 click==8.1.7
 colorama==0.4.6
+coverage==7.4.3
 frozenlist==1.4.1
 idna==3.6
 iniconfig==2.0.0
@@ -27,6 +28,7 @@ pluggy==1.4.0
 pyproject-hooks==1.0.0
 pytest==8.1.0
 pytest-asyncio==0.23.5
+pytest-cov==4.1.0
 ruff==0.2.1
 soupsieve==2.5
 strinpy==0.0.4
