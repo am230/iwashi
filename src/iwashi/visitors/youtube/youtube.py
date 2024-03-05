@@ -116,7 +116,7 @@ class Youtube(SiteVisitor):
             data["metadata"]["channelMetadataRenderer"]["avatar"]
         )
         context.create_result(
-            site_name="Youtube",
+            site_name="YouTube",
             url=f"https://www.youtube.com/@{vanity_id.split('@')[1]}",
             name=name,
             description=description,
@@ -125,7 +125,7 @@ class Youtube(SiteVisitor):
 
         first_link, api = self.parse_token(data)
         if first_link is not None:
-            context.visit(self.parse_redirect(first_link))
+            context.enqueue(self.parse_redirect(first_link))
         if api is None:
             return
         api_url, token = api
@@ -152,7 +152,7 @@ class Youtube(SiteVisitor):
         ]["links"]
         for link in links:
             link_url = link["channelExternalLinkViewModel"]["link"]["content"]
-            context.visit(self.parse_redirect(link_url))
+            context.enqueue(self.parse_redirect(link_url))
 
     def extract_initial_data(self, soup: bs4.BeautifulSoup) -> ytinitialdata:
         for script in soup.select("script"):

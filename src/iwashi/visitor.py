@@ -41,16 +41,16 @@ class Visitor(Protocol):
 
 class FakeVisitor(Visitor):
     def __init__(self):
-        self.visited = []
+        self.queue = []
 
     async def visit(self, url, context, **kwargs):
-        self.visited.append(url)
+        raise NotImplementedError
 
     async def tree(self, url, context, **kwargs):
         raise NotImplementedError
 
     def push(self, url, context):
-        raise NotImplementedError
+        self.queue.append(url)
 
     def mark_visited(self, url):
         raise NotImplementedError
@@ -95,7 +95,7 @@ class Context:
     def new_context(self, url: str) -> Context:
         return Context(session=self.session, url=url, visitor=self.visitor, parent=self)
 
-    def push(self, url: str) -> None:
+    def enqueue(self, url: str) -> None:
         self.visitor.push(url, self)
 
 

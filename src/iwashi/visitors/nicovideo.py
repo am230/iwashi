@@ -49,7 +49,7 @@ class Nicovideo(SiteVisitor):
         )
 
         for link in user["sns"]:
-            context.visit(link["url"])
+            context.enqueue(link["url"])
 
 
 class UserLevel(TypedDict):

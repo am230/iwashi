@@ -103,10 +103,10 @@ class Twitter(SiteVisitor):
             return
 
         for link in data["entities"]["url"]["urls"]:
-            context.visit(link["expanded_url"])
+            context.enqueue(link["expanded_url"])
 
         for link in data["entities"]["description"]["urls"]:
-            context.visit(link["expanded_url"])
+            context.enqueue(link["expanded_url"])
 
 
 class LocationsItem0(TypedDict):

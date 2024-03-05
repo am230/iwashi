@@ -46,4 +46,4 @@ class Booth(SiteVisitor):
         for link in desc_element.find_all(attrs={"class": "shop-contacts__link"}):
             link: bs4.Tag = link.find("a")  # type: ignore
             if link.has_attr("href"):
-                context.visit(link.attrs["href"])
+                context.enqueue(link.attrs["href"])

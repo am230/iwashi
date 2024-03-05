@@ -47,17 +47,17 @@ class Pixiv(SiteVisitor):
                 profile_picture=user["imageBig"],
             )
             if "webpage" in user and user["webpage"] is not None:
-                context.visit(user["webpage"])
+                context.enqueue(user["webpage"])
             if user["social"]:
                 for link in user["social"].values():
-                    context.visit(link["url"])
+                    context.enqueue(link["url"])
 
             resp = await context.session.get(
                 f"https://sketch.pixiv.net/api/pixiv/user/posts/latest?user_id={id}"
             )
             if resp.status == 200:
                 data = await resp.json()
-                context.visit(data["data"]["user"]["url"])
+                context.enqueue(data["data"]["user"]["url"])
 
 
 class Background(TypedDict):

@@ -21,4 +21,4 @@ class Bitly(SiteVisitor):
             f"https://bit.ly/{id}",
         )
         context.create_result("Bitly", url=url)
-        context.visit(res.url)
+        context.enqueue(res.url)

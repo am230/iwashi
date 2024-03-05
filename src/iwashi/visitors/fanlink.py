@@ -52,7 +52,7 @@ class Fanlink(SiteVisitor):
         )
 
         for link in data["social_settings"]:
-            context.visit(link["url"])
+            context.enqueue(link["url"])
 
 
 class ScheduleItem(TypedDict):

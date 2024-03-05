@@ -88,7 +88,7 @@ class Soundcloud(SiteVisitor):
         )
         profile: List[ProfileItem] = await profile_res.json()
         for item in profile:
-            context.visit(item["url"])
+            context.enqueue(item["url"])
 
 
 class ProfileItem(TypedDict):

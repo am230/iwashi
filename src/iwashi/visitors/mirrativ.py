@@ -21,7 +21,7 @@ class Mirrativ(SiteVisitor):
             return url
         return f'https://mirrativ.com/user/{match.group("id")}'
 
-    async def fetch_scrf_token(self) -> str | None:
+    async def fetch_scrf_token(self, context: Context) -> str | None:
         res = await context.session.get(
             "https://www.mirrativ.com/",
         )
@@ -36,7 +36,7 @@ class Mirrativ(SiteVisitor):
 
         headers = BASE_HEADERS | {
             "accept": "application/json",
-            "x-csrf-token": self.fetch_scrf_token(),
+            "x-csrf-token": self.fetch_scrf_token(context),
         }
 
         res = await context.session.get(
@@ -56,7 +56,7 @@ class Mirrativ(SiteVisitor):
         )
 
         for link in info["links"]:
-            context.visit(link["url"])
+            context.enqueue(link["url"])
 
 
 class PreviewViewersItem(TypedDict):

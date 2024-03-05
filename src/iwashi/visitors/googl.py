@@ -21,4 +21,4 @@ class Googl(SiteVisitor):
             f"https://goo.gl/{id}",
         )
         context.create_result("Googl", url=url)
-        context.visit(res.url)
+        context.enqueue(res.url)

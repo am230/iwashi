@@ -41,7 +41,7 @@ class Linktree(SiteVisitor):
         for link in links:
             if not link["url"]:
                 continue
-            context.visit(link["url"])
+            context.enqueue(link["url"])
 
 
 class Owner(TypedDict):

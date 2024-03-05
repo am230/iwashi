@@ -47,7 +47,7 @@ class Bandcamp(SiteVisitor):
         for link in data["publisher"]["mainEntityOfPage"]:
             if link["@type"] != "WebPage":
                 continue
-            context.visit(link["url"])
+            context.enqueue(link["url"])
 
 
 AdditionalpropertyItem = TypedDict(

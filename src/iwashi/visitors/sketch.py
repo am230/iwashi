@@ -49,7 +49,7 @@ class Sketch(SiteVisitor):
             profile_picture=user["icon"]["photo"]["original"]["url"],
         )
 
-        context.visit(f'https://pixiv.net/users/{user["pixiv_user_id"]}')
+        context.enqueue(f'https://pixiv.net/users/{user["pixiv_user_id"]}')
 
 
 class DescriptionFragmentsItem(TypedDict):

@@ -67,7 +67,7 @@ class Twitch(SiteVisitor):
         )
 
         for link in user["channel"]["socialMedias"]:
-            context.visit(link["url"])
+            context.enqueue(link["url"])
 
 
 class Followers(TypedDict):

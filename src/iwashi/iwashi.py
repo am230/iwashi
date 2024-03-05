@@ -1,5 +1,5 @@
 import asyncio
-from typing import Awaitable, List, MutableSet, Optional, Tuple
+from typing import Awaitable, List, MutableSet, Optional
 import aiohttp
 
 from loguru import logger
@@ -12,7 +12,7 @@ class Iwashi(Visitor):
     def __init__(self) -> None:
         self.visitors: List[SiteVisitor] = []
         self.visited: MutableSet[str] = set()
-        self.queue: List[Tuple[str, Context]] = []
+        self.tasks: List[Awaitable] = []
         self.session = aiohttp.ClientSession(headers=BASE_HEADERS)
 
     def add_visitor(self, visitor: SiteVisitor) -> None:
@@ -32,19 +32,12 @@ class Iwashi(Visitor):
         context = context or Context(session=self.session, url=url, visitor=self)
         context = context.new_context(url)
         await self.visit(url, context)
-        tasks: List[Awaitable] = [
-            self.visit(url, context) for url, context in self.queue
-        ]
-        while tasks:
-            task = tasks.pop()
-            result = await task
-            if result is not None:
-                return result
-
+        while self.tasks:
+            await self.tasks.pop()
         return context.result
 
     def push(self, url: str, context: Context) -> None:
-        self.queue.append((url, context))
+        self.tasks.append(self.visit(url, context))
 
     async def visit(
         self, _url: str, context: Optional[Context] = None
@@ -104,7 +97,7 @@ class Iwashi(Visitor):
         if new_url == url:
             return False
         context.create_result(site_name=parse_host(url), url=url)
-        context.push(new_url)
+        context.enqueue(new_url)
         logger.info(f"[Redirect] {url} -> {new_url}")
         return True
 
