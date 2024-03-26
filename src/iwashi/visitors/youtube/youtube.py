@@ -5,7 +5,7 @@ from urllib import parse
 
 import bs4
 
-from iwashi.helper import HTTP_REGEX, normalize_url
+from iwashi.helper import BASE_HEADERS, HTTP_REGEX, normalize_url
 from iwashi.visitor import Context, SiteVisitor
 
 from .types import thumbnails, ytinitialdata
@@ -135,7 +135,9 @@ class Youtube(SiteVisitor):
                 {
                     "context": {
                         "client": {
-                            "userAgent": context.session.headers["User-Agent"],
+                            "userAgent": context.session.headers.get(
+                                "User-Agent", BASE_HEADERS["User-Agent"]
+                            ),
                             "clientName": "WEB",
                             "clientVersion": "2.20231219.04.00",
                         }

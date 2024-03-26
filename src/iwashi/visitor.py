@@ -120,4 +120,5 @@ class SiteVisitor(abc.ABC):
     ) -> Result | None:
         visitor = FakeVisitor()
         context = Context(session=session, url=url, visitor=visitor)
-        return await self.visit(url, context)
+        await self.visit(url, context)
+        return context.result
