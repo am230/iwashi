@@ -48,4 +48,4 @@ class Booth(SiteVisitor):
             if link is None:
                 continue
             if "href" in link.attrs:
-                context.enqueue(link.attrs["href"])
+                context.enqueue_visit(link.attrs["href"])

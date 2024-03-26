@@ -50,7 +50,7 @@ class Note(SiteVisitor):
                 continue
             links.add(link.attrs["href"])
         for link in links:
-            context.enqueue(link)
+            context.enqueue_visit(link)
 
 
 Author = TypedDict("author", {"@type": "str", "name": "str", "url": "str"})

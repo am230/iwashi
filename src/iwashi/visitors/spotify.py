@@ -76,7 +76,7 @@ class Spotify(SiteVisitor):
         )
 
         for link in profile["externalLinks"]["items"]:
-            context.enqueue(link["url"])
+            context.enqueue_visit(link["url"])
 
 
 class Session(TypedDict):

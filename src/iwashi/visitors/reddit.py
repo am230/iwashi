@@ -45,7 +45,7 @@ class Reddit(SiteVisitor):
             data: SocialLink = json.loads(
                 element.attrs["data-faceplate-tracking-context"]
             )
-            context.enqueue(data["social_link"]["url"])
+            context.enqueue_visit(data["social_link"]["url"])
 
 
 class Subreddit(TypedDict):

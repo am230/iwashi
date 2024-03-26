@@ -46,7 +46,7 @@ class Fanbox(SiteVisitor):
         )
 
         for link in info["body"]["profileLinks"]:
-            context.enqueue(link)
+            context.enqueue_visit(link)
 
 
 class User(TypedDict):

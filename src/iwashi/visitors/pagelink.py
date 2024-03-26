@@ -24,4 +24,4 @@ class PageLink(SiteVisitor):
             "PageLink",
             url=url,
         )
-        context.enqueue(urllib.parse.unquote(link))
+        context.enqueue_visit(urllib.parse.unquote(link))

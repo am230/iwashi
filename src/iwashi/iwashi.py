@@ -30,14 +30,14 @@ class Iwashi(Visitor):
 
     async def tree(self, url: str, context: Optional[Context] = None) -> Result | None:
         context = context or Context(session=self.session, url=url, visitor=self)
-        context = context.new_context(url)
+        context = context.create_context(url)
         result = await self.visit(url, context)
         while self.tasks:
             await self.tasks.pop()
 
         return result
 
-    def push(self, url: str, context: Context) -> None:
+    def enqueue_visit(self, url: str, context: Context) -> None:
         coro = self.visit(url, context)
         task = asyncio.create_task(coro)
         self.tasks.append(task)
@@ -51,7 +51,7 @@ class Iwashi(Visitor):
         if context is None:
             context = Context(session=self.session, url=url, visitor=self)
         else:
-            context = context.new_context(url)
+            context = context.create_context(url)
         if self.is_visited(url):
             return None
         for visitor in self.visitors:
@@ -103,7 +103,7 @@ class Iwashi(Visitor):
         if new_url == url:
             return False
         context.create_result(site_name=parse_host(url), url=url)
-        context.enqueue(new_url)
+        context.enqueue_visit(new_url)
         logger.info(f"[Redirect] {url} -> {new_url}")
         return True
 

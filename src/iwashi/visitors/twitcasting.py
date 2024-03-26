@@ -53,4 +53,4 @@ class TwitCasting(SiteVisitor):
         for link in links:
             if link.startswith("/"):
                 continue
-            context.enqueue(link)
+            context.enqueue_visit(link)

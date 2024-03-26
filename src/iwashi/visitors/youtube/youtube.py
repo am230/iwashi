@@ -125,7 +125,7 @@ class Youtube(SiteVisitor):
 
         first_link, api = self.parse_token(data)
         if first_link is not None:
-            context.enqueue(self.parse_redirect(first_link))
+            context.enqueue_visit(self.parse_redirect(first_link))
         if api is None:
             return
         api_url, token = api
@@ -152,7 +152,7 @@ class Youtube(SiteVisitor):
         ]["links"]
         for link in links:
             link_url = link["channelExternalLinkViewModel"]["link"]["content"]
-            context.enqueue(self.parse_redirect(link_url))
+            context.enqueue_visit(self.parse_redirect(link_url))
 
     def extract_initial_data(self, soup: bs4.BeautifulSoup) -> ytinitialdata:
         for script in soup.select("script"):

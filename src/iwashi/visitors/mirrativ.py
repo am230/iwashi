@@ -56,7 +56,7 @@ class Mirrativ(SiteVisitor):
         )
 
         for link in info["links"]:
-            context.enqueue(link["url"])
+            context.enqueue_visit(link["url"])
 
 
 class PreviewViewersItem(TypedDict):

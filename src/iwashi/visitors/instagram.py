@@ -69,7 +69,7 @@ class Instagram(SiteVisitor):
         context.create_result("Instagram", url=url, description=user["biography"])
 
         for link in user["bio_links"]:
-            context.enqueue(link["url"])
+            context.enqueue_visit(link["url"])
 
 
 class BioLinksItem0(TypedDict):

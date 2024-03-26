@@ -35,7 +35,7 @@ class Visitor(Protocol):
     def mark_visited(self, url: str) -> None:
         ...
 
-    def push(self, url: str, context: Context) -> None:
+    def enqueue_visit(self, url: str, context: Context) -> None:
         ...
 
 
@@ -49,7 +49,7 @@ class FakeVisitor(Visitor):
     async def tree(self, url, context, **kwargs):
         raise NotImplementedError
 
-    def push(self, url, context):
+    def enqueue_visit(self, url, context):
         self.queue.append(url)
 
     def mark_visited(self, url):
@@ -92,11 +92,11 @@ class Context:
     def mark_visited(self, url: str) -> None:
         self.visitor.mark_visited(url)
 
-    def new_context(self, url: str) -> Context:
+    def create_context(self, url: str) -> Context:
         return Context(session=self.session, url=url, visitor=self.visitor, parent=self)
 
-    def enqueue(self, url: str) -> None:
-        self.visitor.push(url, self)
+    def enqueue_visit(self, url: str) -> None:
+        self.visitor.enqueue_visit(url, self)
 
 
 class SiteVisitor(abc.ABC):
@@ -114,3 +114,10 @@ class SiteVisitor(abc.ABC):
     @abc.abstractmethod
     async def visit(self, url, context: Context, **kwargs) -> Optional[Result]:
         raise NotImplementedError()
+
+    async def visit_url(
+        self, url: str, session: aiohttp.ClientSession
+    ) -> Result | None:
+        visitor = FakeVisitor()
+        context = Context(session=session, url=url, visitor=visitor)
+        return await self.visit(url, context)
