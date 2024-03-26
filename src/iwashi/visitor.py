@@ -3,7 +3,7 @@ from __future__ import annotations
 import abc
 import re
 from dataclasses import dataclass, field
-from typing import List, Optional, Protocol
+from typing import List, Optional, Protocol, Set
 
 import aiohttp
 
@@ -19,7 +19,7 @@ class Result:
     profile_picture: Optional[str]
 
     children: List[Result] = field(default_factory=list)
-    links: List[str] = field(default_factory=list)
+    links: Set[str] = field(default_factory=set)
 
     def to_list(self) -> List[Result]:
         links: List[Result] = [self]
@@ -86,8 +86,9 @@ class Context:
         return self.result
 
     def link(self, url: str) -> None:
-        if self.result is not None:
-            self.result.links.append(url)
+        if self.result is None:
+            raise ValueError("Result is not created yet")
+        self.result.links.add(url)
 
     def mark_visited(self, url: str) -> None:
         self.visitor.mark_visited(url)
@@ -96,6 +97,7 @@ class Context:
         return Context(session=self.session, url=url, visitor=self.visitor, parent=self)
 
     def enqueue_visit(self, url: str) -> None:
+        self.link(url)
         self.visitor.enqueue_visit(url, self)
 
 
