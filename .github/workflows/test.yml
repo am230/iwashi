@@ -34,11 +34,11 @@ jobs:
         run: |
           rye sync
       - name: Run tests
-        continue-on-error: true
+        id: test
         run: |
           rye run pytest -v --cov=./src --cov-report=xml
       - name: Report failures
-        if: failure()
+        if: failure() && steps.test.outcome == 'failure'
         run: |
           chmod +x .github/scripts/report-failures.sh
           ./.github/scripts/report-failures.sh
