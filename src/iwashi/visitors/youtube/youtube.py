@@ -36,10 +36,31 @@ class Youtube(SiteVisitor):
         return url
 
     async def _channel_by_video(self, context: Context, video_id: str) -> str | None:
-        res = await context.session.get(
-            f"https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v={video_id}&format=json"
+        result = await self._channel_by_oembed(
+            context, f"https://www.youtube.com/watch?v={video_id}"
         )
-        if res.status == 404:
+        if result is not None:
+            return result
+        response = await context.session.get(
+            f"https://www.youtube.com/watch?v={video_id}"
+        )
+        if response.status == 404:
+            return None
+        soup = bs4.BeautifulSoup(await response.text(), "html.parser")
+        element = soup.select_one('span[itemprop="author"] > link[itemprop="url"]')
+        if element is None:
+            return None
+        return normalize_url(element.attrs["href"])
+
+    async def _channel_by_oembed(self, context: Context, video_id: str) -> str | None:
+        res = await context.session.get(
+            "https://www.youtube.com/oembed",
+            params={
+                "url": f"https://www.youtube.com/watch?v={video_id}",
+                "format": "json",
+            },
+        )
+        if res.status // 100 != 2:
             return None
         data = await res.json()
         return normalize_url(data["author_url"])
