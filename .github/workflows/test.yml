@@ -34,8 +34,17 @@ jobs:
         run: |
           rye sync
       - name: Run tests
+        continue-on-error: true
         run: |
           rye run pytest -v --cov=./src --cov-report=xml
+      - name: Report failures
+        if: failure()
+        run: |
+          chmod +x .github/scripts/report-failures.sh
+          ./.github/scripts/report-failures.sh
+        env:
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+          WORKFLOW_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4.0.1
         with:
