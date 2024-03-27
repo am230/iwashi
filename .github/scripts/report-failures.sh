@@ -7,4 +7,4 @@ send_message_to_discord() {
     curl -X POST -H "Content-Type: application/json" -d "{\"content\":\"$message\"}" "$WEBHOOK_URL"
 }
 
-send_message_to_discord "test failed! $WORKFLOW_URL"
+send_message_to_discord "<@&1222530490993479802> test failed! $WORKFLOW_URL"
