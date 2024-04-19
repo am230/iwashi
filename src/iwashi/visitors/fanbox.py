@@ -8,18 +8,19 @@ from iwashi.visitor import Context, SiteVisitor
 
 
 class Fanbox(SiteVisitor):
-    NAME = "Fanbox"
-    URL_REGEX: re.Pattern = re.compile(
-        HTTP_REGEX + r"(?P<id>[\w-]+)\.fanbox\.cc", re.IGNORECASE
-    )
+    def __init__(self) -> None:
+        super().__init__(
+            name="Fanbox",
+            regex=re.compile(HTTP_REGEX + r"(?P<id>[\w-]+)\.fanbox\.cc", re.IGNORECASE),
+        )
 
-    async def normalize(self, context: Context, url: str) -> str:
-        match = self.URL_REGEX.match(url)
+    async def resolve_id(self, context: Context, url: str) -> str:
+        match = self.regex.match(url)
         if match is None:
             return url
-        return f'https://{match.group("id")}.fanbox.cc'
+        return match.group("id")
 
-    async def visit(self, url, context: Context, id: str):
+    async def visit(self, context: Context, id: str):
         url = f"https://{id}.fanbox.cc"
         creator_res = await context.session.get(
             f"https://api.fanbox.cc/creator.get?creatorId={id}",

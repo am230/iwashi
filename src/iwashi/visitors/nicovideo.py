@@ -10,24 +10,27 @@ from iwashi.visitor import Context, SiteVisitor
 
 
 class Nicovideo(SiteVisitor):
-    NAME = "Nicovideo"
-    URL_REGEX: re.Pattern = re.compile(
-        HTTP_REGEX + r"(sp\.)?nicovideo\.jp/(?P<path>user|mylist)/(?P<id>\d+)",
-        re.IGNORECASE,
-    )
+    def __init__(self) -> None:
+        super().__init__(
+            name="Nicovideo",
+            regex=re.compile(
+                HTTP_REGEX + r"(sp\.)?nicovideo\.jp/(?P<path>user|mylist)/(?P<id>\d+)",
+                re.IGNORECASE,
+            ),
+        )
 
-    async def normalize(self, context: Context, url: str) -> str:
-        match = self.URL_REGEX.match(url)
+    async def resolve_id(self, context: Context, url: str) -> str:
+        match = self.regex.match(url)
         if match is None:
             return url
         if match.group("path") == "mylist":
             res = await context.session.get(
                 f'https://www.nicovideo.jp/mylist/{match.group("id")}'
             )
-            return await self.normalize(context, str(res.url))
+            return await self.resolve_id(context, str(res.url))
         return f'nicovideo.jp/user/{match.group("id")}'
 
-    async def visit(self, url, context: Context, path: str, id: str):
+    async def visit(self, context: Context, id: str):
         url = f"https://www.nicovideo.jp/user/{id}"
         res = await context.session.get(
             f"https://www.nicovideo.jp/user/{id}",

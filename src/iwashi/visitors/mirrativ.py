@@ -10,13 +10,16 @@ from iwashi.visitor import Context, SiteVisitor
 
 
 class Mirrativ(SiteVisitor):
-    NAME = "Mirrative"
-    URL_REGEX: re.Pattern = re.compile(
-        HTTP_REGEX + r"mirrativ.com/user/(?P<id>[\d]+)", re.IGNORECASE
-    )
+    def __init__(self):
+        super().__init__(
+            name="Mirrativ",
+            regex=re.compile(
+                HTTP_REGEX + r"mirrativ.com/user/(?P<id>[\d]+)", re.IGNORECASE
+            ),
+        )
 
-    async def normalize(self, context: Context, url: str) -> str:
-        match = self.URL_REGEX.match(url)
+    async def resolve_id(self, context: Context, url: str) -> str:
+        match = self.regex.match(url)
         if match is None:
             return url
         return f'https://mirrativ.com/user/{match.group("id")}'
@@ -31,7 +34,7 @@ class Mirrativ(SiteVisitor):
             raise RuntimeError("Could not find csrf-token")
         return element.attrs.get("content")
 
-    async def visit(self, url, context: Context, id: str):
+    async def visit(self, context: Context, id: str):
         url = f"https://www.mirrativ.com/api/user/profile?user_id={id}"
 
         headers = BASE_HEADERS | {

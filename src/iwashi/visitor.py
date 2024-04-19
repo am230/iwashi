@@ -29,7 +29,7 @@ class Result:
 
 
 class Visitor(Protocol):
-    async def visit(self, url: str, context: Context, **kwargs) -> Result:
+    async def visit(self, url: str, context: Context) -> Result | None:
         ...
 
     def mark_visited(self, url: str) -> None:
@@ -41,7 +41,7 @@ class Visitor(Protocol):
 
 class FakeVisitor(Visitor):
     def __init__(self):
-        self.queue = []
+        self.queue: List[str] = []
 
     async def visit(self, url, context, **kwargs):
         raise NotImplementedError
@@ -59,7 +59,6 @@ class FakeVisitor(Visitor):
 @dataclass
 class Context:
     session: aiohttp.ClientSession
-    url: str
     visitor: Visitor
     parent: Optional[Context] = None
     result: Optional[Result] = None
@@ -93,8 +92,8 @@ class Context:
     def mark_visited(self, url: str) -> None:
         self.visitor.mark_visited(url)
 
-    def create_context(self, url: str) -> Context:
-        return Context(session=self.session, url=url, visitor=self.visitor, parent=self)
+    def create_context(self) -> Context:
+        return Context(session=self.session, visitor=self.visitor, parent=self)
 
     def enqueue_visit(self, url: str) -> None:
         self.link(url)
@@ -102,25 +101,28 @@ class Context:
 
 
 class SiteVisitor(abc.ABC):
-    NAME: Optional[str] = None
-    URL_REGEX: Optional[re.Pattern] = None
+    def __init__(self, name: str, regex: re.Pattern):
+        self.name = name
+        self.regex = regex
 
     def match(self, url, context: Context) -> Optional[re.Match]:
-        if self.URL_REGEX is None:
-            raise NotImplementedError()
-        return self.URL_REGEX.match(url)
-
-    async def normalize(self, context: Context, url: str) -> str | None:
-        return url
+        return self.regex.match(url)
 
     @abc.abstractmethod
-    async def visit(self, url, context: Context, **kwargs) -> Optional[Result]:
+    async def resolve_id(self, context: Context, url: str) -> str | None:
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    async def visit(self, context: Context, id: str) -> Optional[Result]:
         raise NotImplementedError()
 
     async def visit_url(
-        self, url: str, session: aiohttp.ClientSession
-    ) -> Result | None:
+        self, session: aiohttp.ClientSession, url: str
+    ) -> Optional[Result]:
         visitor = FakeVisitor()
-        context = Context(session=session, url=url, visitor=visitor)
-        await self.visit(url, context)
+        context = Context(session=session, visitor=visitor)
+        id = await self.resolve_id(context, url)
+        if id is None:
+            return None
+        await self.visit(context, id)
         return context.result

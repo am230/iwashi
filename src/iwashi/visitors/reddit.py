@@ -11,18 +11,22 @@ from iwashi.visitor import Context, SiteVisitor
 
 
 class Reddit(SiteVisitor):
-    NAME = "Reddit"
-    URL_REGEX: re.Pattern = re.compile(
-        HTTP_REGEX + r"reddit\.com/user/(?P<id>[\w-]+)", re.IGNORECASE
-    )
+    def __init__(self):
+        super().__init__(
+            name="Reddit",
+            regex=re.compile(
+                HTTP_REGEX + r"reddit\.com/user/(?P<id>[\w-]+)", re.IGNORECASE
+            ),
+        )
 
-    async def normalize(self, context: Context, url: str) -> str:
-        match = self.URL_REGEX.match(url)
+    async def resolve_id(self, context: Context, url: str) -> str:
+        match = self.regex.match(url)
         if match is None:
             return url
         return f'https://reddit.com/user/{match.group("id")}'
 
-    async def visit(self, url, context: Context, id: str):
+    async def visit(self, context: Context, id: str):
+        url = f"https://reddit.com/user/{id}"
         res = await context.session.get(
             f"https://www.reddit.com/user/{id}/about.json",
         )

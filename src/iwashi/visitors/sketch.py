@@ -12,21 +12,23 @@ from iwashi.visitor import Context, SiteVisitor
 
 
 class Sketch(SiteVisitor):
-    NAME = "Sketch"
-    URL_REGEX: re.Pattern = re.compile(
-        HTTP_REGEX + r"sketch\.pixiv\.net/@(?P<id>\w+)", re.IGNORECASE
-    )
+    def __init__(self):
+        super().__init__(
+            name="Sketch",
+            regex=re.compile(
+                HTTP_REGEX + r"sketch\.pixiv\.net/@(?P<id>\w+)", re.IGNORECASE
+            ),
+        )
 
-    async def normalize(self, context: Context, url: str) -> str:
-        match = self.URL_REGEX.match(url)
+    async def resolve_id(self, context: Context, url: str) -> str:
+        match = self.regex.match(url)
         if match is None:
             return url
         return f'https://sketch.pixiv.net/@{match.group("id")}'
 
-    async def visit(self, url, context: Context, id: str):
-        res = await context.session.get(
-            f"https://sketch.pixiv.net/@{id}",
-        )
+    async def visit(self, context: Context, id: str):
+        url = f"https://sketch.pixiv.net/@{id}"
+        res = await context.session.get(url)
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
         element = soup.select_one("script#__NEXT_DATA__")
         if element is None:

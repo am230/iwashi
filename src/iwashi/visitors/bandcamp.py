@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import re
-from typing import List, TypedDict, Union
+from typing import List, TypedDict
 
 import bs4
 
@@ -13,181 +13,52 @@ DATA_REGEX = r"preloadLink\s?=\s(?P<json>{[^;]+)"
 
 
 class Bandcamp(SiteVisitor):
-    NAME = "Bandcamp"
-    URL_REGEX: re.Pattern = re.compile(
-        HTTP_REGEX + r"(?P<id>[\w-]+\.)?bandcamp\.com/(?P<slug>[\w-]+)?", re.IGNORECASE
-    )
-
-    async def normalize(self, context: Context, url: str) -> str:
-        match = self.URL_REGEX.match(url)
-        if match is None:
-            return url
-        return (
-            f'https://{match.group("id") or ""}bandcamp.com/{match.group("slug") or ""}'
+    def __init__(self):
+        super().__init__(
+            name="Bandcamp",
+            regex=re.compile(
+                HTTP_REGEX + r"(?P<id>[\w-]+)?\.bandcamp\.com", re.IGNORECASE
+            ),
         )
 
-    async def visit(
-        self, url, context: Context, id: str | None = None, slug: str | None = None
-    ) -> None:
+    async def resolve_id(self, context: Context, url: str) -> str | None:
+        match = self.regex.match(url)
+        if match is None:
+            return None
+        return match.group("id")
+
+    async def visit(self, context: Context, id: str) -> None:
+        url = f"https://{id}.bandcamp.com"
         res = await context.session.get(url)
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
-        script = soup.select_one("script[type='application/ld+json']")
+        script = soup.select_one("script[data-band]")
         if script is None:
             raise Exception("No script found")
 
-        data: Root = json.loads(script.text)
+        data: Root = json.loads(script.attrs["data-band"])
+        description_element = soup.select_one(".signed-out-artists-bio-text")
+        profile_picture_element = soup.select_one(".band-photo")
         context.create_result(
             site_name="Bandcamp",
             url=url,
             name=data["name"],
-            description=data.get("description"),
-            profile_picture=data["image"],
+            description=description_element.text.strip()
+            if description_element
+            else None,
+            profile_picture=profile_picture_element.attrs["src"]
+            if profile_picture_element
+            else None,
         )
 
-        for link in data["publisher"]["mainEntityOfPage"]:
-            if link["@type"] != "WebPage":
-                continue
-            context.enqueue_visit(link["url"])
+        for site in data["sites"]:
+            context.enqueue_visit(site["url"])
 
 
-AdditionalpropertyItem = TypedDict(
-    "additionalProperty_item", {"@type": "str", "name": "str", "value": "int"}
-)
-AdditionalpropertyItem0 = TypedDict(
-    "additionalProperty_item", {"@type": "str", "name": "str", "value": "str"}
-)
+class Site(TypedDict):
+    url: str
+    title: str
 
 
-class Pricespecification(TypedDict):
-    minPrice: float
-
-
-Offers = TypedDict(
-    "offers",
-    {
-        "@type": "str",
-        "url": "str",
-        "priceCurrency": "str",
-        "price": "float",
-        "priceSpecification": "Pricespecification",
-        "availability": "str",
-    },
-)
-AlbumreleaseItem = TypedDict(
-    "albumRelease_item",
-    {
-        "@type": "List[str]",
-        "@id": "str",
-        "name": "str",
-        "additionalProperty": "List[Union[AdditionalpropertyItem, AdditionalpropertyItem0]]",
-        "description": "str",
-        "offers": "Offers",
-        "musicReleaseFormat": "str",
-        "image": "List[str]",
-    },
-)
-AdditionalpropertyItem1 = TypedDict(
-    "additionalProperty_item", {"@type": "str", "name": "str", "value": "bool"}
-)
-AdditionalpropertyItem2 = TypedDict(
-    "additionalProperty_item", {"@type": "str", "name": "str", "value": "float"}
-)
-Offers0 = TypedDict(
-    "offers",
-    {
-        "@type": "str",
-        "url": "str",
-        "priceCurrency": "str",
-        "price": "float",
-        "priceSpecification": "Pricespecification",
-        "availability": "str",
-        "additionalProperty": "List[Union[AdditionalpropertyItem, AdditionalpropertyItem2]]",
-    },
-)
-AlbumreleaseItem0 = TypedDict(
-    "albumRelease_item",
-    {
-        "@type": "List[str]",
-        "@id": "str",
-        "name": "str",
-        "additionalProperty": "List[Union[AdditionalpropertyItem, AdditionalpropertyItem1, AdditionalpropertyItem0]]",
-        "offers": "Offers0",
-        "musicReleaseFormat": "str",
-        "image": "List[str]",
-    },
-)
-Inalbum = TypedDict(
-    "inAlbum",
-    {
-        "@type": "str",
-        "name": "str",
-        "albumRelease": "List[Union[AlbumreleaseItem0, AlbumreleaseItem]]",
-        "albumReleaseType": "str",
-        "numTracks": "int",
-    },
-)
-Byartist = TypedDict("byArtist", {"@type": "str", "name": "str", "@id": "str"})
-MainentityofpageItem = TypedDict(
-    "mainEntityOfPage_item", {"@type": "str", "url": "str", "name": "str"}
-)
-SubjectofItem = TypedDict(
-    "subjectOf_item",
-    {
-        "@type": "str",
-        "url": "str",
-        "name": "str",
-        "additionalProperty": "List[AdditionalpropertyItem0]",
-    },
-)
-Foundinglocation = TypedDict("foundingLocation", {"@type": "str", "name": "str"})
-Publisher = TypedDict(
-    "publisher",
-    {
-        "@type": "str",
-        "@id": "str",
-        "name": "str",
-        "additionalProperty": "List[Union[AdditionalpropertyItem, AdditionalpropertyItem1]]",
-        "image": "str",
-        "genre": "str",
-        "description": "str",
-        "mainEntityOfPage": "List[MainentityofpageItem]",
-        "subjectOf": "List[SubjectofItem]",
-        "foundingLocation": "Foundinglocation",
-    },
-)
-Author = TypedDict(
-    "author",
-    {
-        "@type": "str",
-        "url": "str",
-        "image": "str",
-        "additionalProperty": "List[AdditionalpropertyItem]",
-        "name": "str",
-    },
-)
-CommentItem = TypedDict(
-    "comment_item", {"@type": "str", "author": "Author", "text": "List[str]"}
-)
-Root = TypedDict(
-    "Root",
-    {
-        "@type": "str",
-        "@id": "str",
-        "additionalProperty": "List[Union[AdditionalpropertyItem, AdditionalpropertyItem0]]",
-        "name": "str",
-        "description": "str",
-        "duration": "str",
-        "dateModified": "str",
-        "datePublished": "str",
-        "inAlbum": "Inalbum",
-        "byArtist": "Byartist",
-        "publisher": "Publisher",
-        "copyrightNotice": "str",
-        "comment": "List[CommentItem]",
-        "keywords": "List[str]",
-        "image": "str",
-        "sponsor": "List[Author]",
-        "mainEntityOfPage": "str",
-        "@context": "str",
-    },
-)
+class Root(TypedDict):
+    sites: List[Site]
+    name: str

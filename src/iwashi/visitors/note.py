@@ -11,18 +11,20 @@ from iwashi.visitor import Context, SiteVisitor
 
 
 class Note(SiteVisitor):
-    NAME = "Note"
-    URL_REGEX: re.Pattern = re.compile(
-        HTTP_REGEX + r"note\.com/(?P<user>[^/]+)", re.IGNORECASE
-    )
+    def __init__(self):
+        super().__init__(
+            name="Note",
+            regex=re.compile(HTTP_REGEX + r"note\.com/(?P<user>[^/]+)", re.IGNORECASE),
+        )
 
-    async def normalize(self, context: Context, url: str) -> str:
-        match = self.URL_REGEX.match(url)
+    async def resolve_id(self, context: Context, url: str) -> str:
+        match = self.regex.match(url)
         if match is None:
             return url
         return f"https://note.com/{match.group('user')}"
 
-    async def visit(self, url: str, context: Context, user: str):
+    async def visit(self, context: Context, id: str):
+        url = f"https://note.com/{id}"
         res = await context.session.get(
             url,
         )
@@ -53,13 +55,13 @@ class Note(SiteVisitor):
             context.enqueue_visit(link)
 
 
-Author = TypedDict("author", {"@type": "str", "name": "str", "url": "str"})
+Author = TypedDict("Author", {"@type": "str", "name": "str", "url": "str"})  # TODO
 Logo = TypedDict(
-    "logo", {"@type": "str", "url": "str", "width": "str", "height": "str"}
+    "Logo", {"@type": "str", "url": "str", "width": "str", "height": "str"}
 )
-Publisher = TypedDict("publisher", {"@type": "str", "name": "str", "logo": "Logo"})
+Publisher = TypedDict("Publisher", {"@type": "str", "name": "str", "logo": "Logo"})
 Image = TypedDict(
-    "image", {"@type": "str", "url": "str", "width": "int", "height": "int"}
+    "Image", {"@type": "str", "url": "str", "width": "int", "height": "int"}
 )
 Root = TypedDict(
     "Root",

@@ -20,8 +20,8 @@ def print_result(
 ) -> None:
     indent = indent_level * "    "
     print(f"{indent}{result.site_name}")
-    print(f"{indent}│url  : {result.url}")
-    print(f"{indent}│name : {result.title}")
+    print(f"{indent}│url   : {result.url}")
+    print(f"{indent}│name  : {result.title}")
     print(f"{indent}│links : {result.links}")
     if result.description:
         print(f"{indent}│description: " + result.description.replace("\n", "\\n"))

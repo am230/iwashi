@@ -12,18 +12,21 @@ from iwashi.visitor import Context, SiteVisitor
 
 
 class TikTok(SiteVisitor):
-    NAME = "TikTok"
-    URL_REGEX: re.Pattern = re.compile(
-        HTTP_REGEX + r"tiktok\.com/@(?P<id>[-\w]+)", re.IGNORECASE
-    )
+    def __init__(self) -> None:
+        super().__init__(
+            name="TikTok",
+            regex=re.compile(
+                HTTP_REGEX + r"tiktok\.com/@(?P<id>[-\w]+)", re.IGNORECASE
+            ),
+        )
 
-    async def normalize(self, context: Context, url: str) -> str:
-        match = self.URL_REGEX.match(url)
+    async def resolve_id(self, context: Context, url: str) -> str:
+        match = self.regex.match(url)
         if match is None:
             return url
         return f'https://tiktok.com/@{match.group("id")}'
 
-    async def visit(self, url, context: Context, id: str):
+    async def visit(self, context: Context, id: str) -> None:
         url = f"https://tiktok.com/@{id}"
         res = await context.session.get(
             url,

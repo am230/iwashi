@@ -9,12 +9,13 @@ from iwashi.visitor import Context, SiteVisitor
 
 
 class Twitter(SiteVisitor):
-    NAME = "Twitter"
-    URL_REGEX: re.Pattern = re.compile(
-        HTTP_REGEX + r"(twitter|x)\.com/(#!/)?@?(?P<id>\w+)", re.IGNORECASE
-    )
-
     def __init__(self) -> None:
+        super().__init__(
+            name="Twitter",
+            regex=re.compile(
+                HTTP_REGEX + r"(twitter|x)\.com/(#!/)?@?(?P<id>\w+)", re.IGNORECASE
+            ),
+        )
         self.headers = {
             "accept": "*/*",
             "accept-encoding": "gzip, deflate, br",
@@ -23,8 +24,8 @@ class Twitter(SiteVisitor):
         self.bearer_token: str | None = None
         self.guest_token: str | None = None
 
-    async def normalize(self, context: Context, url: str) -> str:
-        match = self.URL_REGEX.search(url)
+    async def resolve_id(self, context: Context, url: str) -> str:
+        match = self.regex.search(url)
         if match is None:
             return url
         return f'https://twitter.com/{match.group("id")}'
@@ -56,7 +57,8 @@ class Twitter(SiteVisitor):
         self.headers["authorization"] = await self.fetch_authorization(context)
         self.headers["x-guest-token"] = await self.fetch_guest_token(context)
 
-    async def visit(self, url, context: Context, id: str):
+    async def visit(self, context: Context, id: str) -> None:
+        url = f"https://twitter.com/{id}"
         await self.setup_headers(context)
 
         res = await context.session.get(

@@ -11,12 +11,15 @@ from iwashi.visitor import Context, SiteVisitor
 
 
 class Spotify(SiteVisitor):
-    NAME = "Spotify"
-    URL_REGEX: re.Pattern = re.compile(
-        HTTP_REGEX
-        + r"(open\.)?spotify\.com\/(intl-[\w]*\/)?artist\/(?P<artist_id>[0-9a-zA-Z]+)",
-        re.IGNORECASE,
-    )
+    def __init__(self):
+        super().__init__(
+            name="Spotify",
+            regex=re.compile(
+                HTTP_REGEX
+                + r"(open\.)?spotify\.com\/(intl-[\w]*\/)?artist\/(?P<artist_id>[0-9a-zA-Z]+)",
+                re.IGNORECASE,
+            ),
+        )
 
     async def extract_access_token(self, soup: bs4.BeautifulSoup) -> str:
         script = soup.select_one("script#session")
@@ -25,13 +28,14 @@ class Spotify(SiteVisitor):
         data = Session(**json.loads(script.text))
         return data["accessToken"]
 
-    async def normalize(self, context: Context, url: str) -> str:
-        match = self.URL_REGEX.match(url)
+    async def resolve_id(self, context: Context, url: str) -> str:
+        match = self.regex.match(url)
         if match is None:
             return url
         return f"https://open.spotify.com/artist/{match.group('artist_id')}"
 
-    async def visit(self, url, context: Context, artist_id: str):
+    async def visit(self, context: Context, id: str):
+        url = f"https://open.spotify.com/artist/{id}"
         response = await context.session.get(url, headers=BASE_HEADERS)
         soup = bs4.BeautifulSoup(await response.text(), "html.parser")
         access_token = await self.extract_access_token(soup)
@@ -45,7 +49,7 @@ class Spotify(SiteVisitor):
             "operationName": "queryArtistOverview",
             "variables": json.dumps(
                 {
-                    "uri": f"spotify:artist:{artist_id}",
+                    "uri": f"spotify:artist:{id}",
                     "locale": "intl-ja",
                     "includePrerelease": True,
                 }

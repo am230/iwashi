@@ -9,20 +9,22 @@ from iwashi.visitor import Context, SiteVisitor
 
 
 class Linktree(SiteVisitor):
-    NAME = "Linktree"
-    URL_REGEX: re.Pattern = re.compile(
-        HTTP_REGEX + r"linktr\.ee/(?P<id>\w+)", re.IGNORECASE
-    )
+    def __init__(self) -> None:
+        super().__init__(
+            name="Linktree",
+            regex=re.compile(HTTP_REGEX + r"linktr\.ee/(?P<id>\w+)", re.IGNORECASE),
+        )
 
-    async def normalize(self, context: Context, url: str) -> str:
-        match = self.URL_REGEX.match(url)
+    async def resolve_id(self, context: Context, url: str) -> str:
+        match = self.regex.match(url)
         if match is None:
             return url
         return f'https://linktr.ee/{match.group("id")}'
 
-    async def visit(self, url, context: Context, id: str):
+    async def visit(self, context: Context, id: str):
+        url = f"https://linktr.ee/{id}"
         res = await context.session.get(
-            f"https://linktr.ee/{id}",
+            url,
         )
         if res.status != 200:
             return None

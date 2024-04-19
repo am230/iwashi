@@ -1,5 +1,5 @@
 import asyncio
-from typing import List, MutableSet, Optional
+from typing import List, MutableSet, NamedTuple, Optional
 import aiohttp
 
 from loguru import logger
@@ -8,10 +8,16 @@ from .helper import BASE_HEADERS, DEBUG, normalize_url, parse_host
 from .visitor import Context, Result, SiteVisitor, Visitor
 
 
+class Identifier(NamedTuple):
+    site: str
+    id: str
+
+
 class Iwashi(Visitor):
     def __init__(self) -> None:
         self.visitors: List[SiteVisitor] = []
-        self.visited: MutableSet[str] = set()
+        self.visited_urls: MutableSet[str] = set()
+        self.visited_ids: MutableSet[Identifier] = set()
         self.tasks: List[asyncio.Task] = []
         self.session = aiohttp.ClientSession(headers=BASE_HEADERS)
 
@@ -19,18 +25,14 @@ class Iwashi(Visitor):
         self.visitors.append(visitor)
 
     def is_visited(self, url: str) -> bool:
-        return url in self.visited
+        return url in self.visited_urls
 
-    def mark_visited(self, url: str) -> bool:
-        url = url.lower()
-        if self.is_visited(url):
-            return False
-        self.visited.add(url)
-        return True
+    def mark_visited(self, url: str):
+        self.visited_urls.add(url)
 
     async def tree(self, url: str, context: Optional[Context] = None) -> Result | None:
-        context = context or Context(session=self.session, url=url, visitor=self)
-        context = context.create_context(url)
+        context = context or Context(session=self.session, visitor=self)
+        context = context.create_context()
         result = await self.visit(url, context)
         while self.tasks:
             await self.tasks.pop()
@@ -42,47 +44,46 @@ class Iwashi(Visitor):
         task = asyncio.create_task(coro)
         self.tasks.append(task)
 
-    async def visit(
-        self, _url: str, context: Optional[Context] = None
-    ) -> Optional[Result]:
-        url = normalize_url(_url)
-        if url is None:
+    async def visit(self, url: str, context: Context) -> Optional[Result]:
+        normalized_url = normalize_url(url)
+        if normalized_url is None:
             return None
-        if context is None:
-            context = Context(session=self.session, url=url, visitor=self)
-        else:
-            context = context.create_context(url)
-        if self.is_visited(url):
+        context = context.create_context()
+        if self.is_visited(normalized_url):
             return None
         for visitor in self.visitors:
-            match = visitor.match(url, context)
+            match = visitor.match(normalized_url, context)
             if match is None:
                 continue
 
             try:
-                normalized = await visitor.normalize(context, url)
-                if normalized is None:
+                id = await visitor.resolve_id(context, normalized_url)
+                if id is None:
                     continue
-                if self.mark_visited(normalized):
-                    match = visitor.match(normalized, context)
-                    if match is not None:
-                        await visitor.visit(normalized, context, **match.groupdict())
-                elif context.parent is not None:
-                    context.parent.link(normalized)
+                identifier = Identifier(site=visitor.name, id=id)
+                if identifier in self.visited_ids:
+                    continue
+                self.visited_ids.add(identifier)
+                await visitor.visit(context, id)
             except Exception as e:
-                logger.warning(f"[Visitor Error] {url} {visitor.__class__.__name__}")
+                logger.warning(
+                    f"[Visitor Error] {normalized_url} {visitor.__class__.__name__}"
+                )
                 logger.exception(e)
                 if DEBUG:
                     raise e
                 continue
+            self.mark_visited(normalized_url)
             break
         else:
-            context.create_result(site_name=parse_host(url), url=url)
-            self.mark_visited(url)
-            if await self.try_redirect(url, context):
+            context.create_result(
+                site_name=parse_host(normalized_url), url=normalized_url
+            )
+            self.mark_visited(normalized_url)
+            if await self.try_redirect(normalized_url, context):
                 return context.result
             else:
-                logger.warning(f"[No Visitor Found] {url}")
+                logger.warning(f"[No Visitor Found] {normalized_url}")
 
         return context.result
 
@@ -114,15 +115,11 @@ def get_iwashi():
     return iwashi
 
 
-def add_visitors(iwashi):
-    from . import visitors
+def add_visitors(iwashi: Iwashi):
+    from .visitors import VISITORS
 
-    for attr in dir(visitors):
-        value = getattr(visitors, attr)
-        if attr.startswith("_"):
-            continue
-        if isinstance(value, type) and issubclass(value, SiteVisitor):
-            iwashi.add_visitor(value())
+    for visitor in VISITORS:
+        iwashi.add_visitor(visitor)
 
 
 async def visit(url: str, iwashi: Optional[Iwashi] = None) -> Optional[Result]:
