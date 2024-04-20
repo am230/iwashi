@@ -20,6 +20,7 @@ def print_result(
 ) -> None:
     indent = indent_level * "    "
     print(f"{indent}{result.visitor}")
+    print(f"{indent}|id    : {result.id}")
     print(f"{indent}│url   : {result.url}")
     print(f"{indent}│name  : {result.name}")
     print(f"{indent}│links : {result.links}")
