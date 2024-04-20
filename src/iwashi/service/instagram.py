@@ -1,10 +1,9 @@
 import re
 from typing import List, TypedDict
 
-import aiohttp
 from loguru import logger
 
-from iwashi.helper import BASE_HEADERS, HTTP_REGEX
+from iwashi.helper import HTTP_REGEX
 from iwashi.visitor import Context, Service
 
 
@@ -17,30 +16,11 @@ class Instagram(Service):
 
     async def visit(self, context: Context, id: str):
         url = f"https://www.instagram.com/{id}"
-        session = aiohttp.ClientSession(
-            headers={
-                "authority": "www.instagram.com",
-                "accept": "*/*",
-                "accept-language": "en-US,en;q=0.9",
-                "referer": url,
-                "sec-ch-prefers-color-scheme": "dark",
-                "sec-ch-ua": '"Not?A_Brand";v="8", "Chromium";v="108", "Microsoft Edge";v="108"',
-                "sec-fetch-dest": "empty",
-                "sec-fetch-mode": "cors",
-                "sec-fetch-site": "same-origin",
-                "x-asbd-id": "198387",
-                "x-ig-www-claim": "0",
-                "x-requested-with": "XMLHttpRequest",
-            }
-            | BASE_HEADERS,
-        )
-
         res = await context.session.get(url)
         res.raise_for_status()
         match = re.search(r"\"X-IG-App-ID\": ?\"(?P<id>\d{15})\"", await res.text())
         if match is None:
-            logger.warning(f"[Instagram] No X-IG-App-ID found in {url}")
-            return
+            raise Exception(f"[Instagram] No X-IG-App-ID found in {url}")
         context.session.headers["x-ig-app-id"] = match.group("id")
 
         info_res = await context.session.get(
