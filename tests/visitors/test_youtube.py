@@ -1,41 +1,28 @@
-import aiohttp
 import pytest
-from iwashi.visitor import Context, FakeVisitor
 from iwashi.visitors.youtube import Youtube
-from tests.visitors.test import iterable_eq
-
-
-youtube = Youtube()
+from iwashi.visitor import Result
+from tests.visitors.test import _test
 
 
 @pytest.mark.asyncio
-async def test_normalize():
-    visitor = FakeVisitor()
-    session = aiohttp.ClientSession()
-
-    for url in {
+async def test_youtube():
+    visitor = Youtube()
+    correct = Result(
+        visitor=visitor,
+        id="TomScottGo",
+        url="https://www.youtube.com/@TomScottGo",
+        name="Tom Scott",
+        description="Hi, I'm Tom Scott. These are some of the things I've made and done. They'll probably come back to haunt me in a few years' time.\n\nContact me: https://www.tomscott.com/contact/\n\n• • •\n\nThis channel is a production of Pad 26 Limited, registered in England and Wales, № 11662641.\nRegistered office: Amelia House, Crescent Road, Worthing, West Sussex, BN11 1QR\n(This address is only for legal documents; no other mail will be forwarded.)",
+        profile_picture="https://yt3.googleusercontent.com/ytc/AIdro_k8W5CNSqxeITAoBY5JkpW3SVJlWitSOStGnvKYulDn21w=s900-c-k-c0x00ffffff-no-rj",
+        links={"https://www.tomscott.com/"},
+    )
+    await _test(
+        visitor,
+        correct,
         "https://www.youtube.com/@TomScottGo",
         "https://www.youtube.com/@TomScottGo/community",
         "https://www.youtube.com/c/TomScottGo",
         "https://www.youtube.com/c/TomScottGo/community",
         "https://youtu.be/7DKv5H5Frt0",
         "https://www.youtube.com/watch?v=7DKv5H5Frt0",
-    }:
-        context = Context(session=session, visitor=visitor)
-        assert await youtube.resolve_id(context, url) == "TomScottGo"
-
-
-@pytest.mark.asyncio
-async def test_visit():
-    session = aiohttp.ClientSession()
-
-    url = "https://www.youtube.com/@TomScottGo"
-    result = await youtube.visit_url(session, url)
-    assert result
-    assert result.url == url
-    assert result.site_name == "YouTube"
-    assert result.title == "Tom Scott"
-    assert result.description is not None
-    assert result.profile_picture is not None
-    # assert result.links == {"https://www.tomscott.com/"}
-    assert iterable_eq(result.links, {"https://www.tomscott.com/"})
+    )

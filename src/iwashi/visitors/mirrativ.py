@@ -45,7 +45,8 @@ class Mirrativ(SiteVisitor):
         )
         info: Root = await res.json()
         context.create_result(
-            "Mirrativ",
+            self,
+            id=id,
             url=url,
             name=info["name"],
             description=info["description"],

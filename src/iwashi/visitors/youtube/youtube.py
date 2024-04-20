@@ -152,7 +152,8 @@ class Youtube(SiteVisitor):
             data["metadata"]["channelMetadataRenderer"]["avatar"]
         )
         context.create_result(
-            site_name="YouTube",
+            self,
+            id=id,
             url=f"https://www.youtube.com/@{vanity_id.split('@')[1]}",
             name=name,
             description=description,

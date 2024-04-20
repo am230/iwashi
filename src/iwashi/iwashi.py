@@ -4,7 +4,7 @@ import aiohttp
 
 from loguru import logger
 
-from .helper import BASE_HEADERS, DEBUG, normalize_url, parse_host
+from .helper import BASE_HEADERS, DEBUG, normalize_url
 from .visitor import Context, Result, SiteVisitor, Visitor
 
 
@@ -76,9 +76,6 @@ class Iwashi(Visitor):
             self.mark_visited(normalized_url)
             break
         else:
-            context.create_result(
-                site_name=parse_host(normalized_url), url=normalized_url
-            )
             self.mark_visited(normalized_url)
             if await self.try_redirect(normalized_url, context):
                 return context.result
@@ -103,7 +100,6 @@ class Iwashi(Visitor):
         new_url = str(res.url)
         if new_url == url:
             return False
-        context.create_result(site_name=parse_host(url), url=url)
         context.enqueue_visit(new_url)
         logger.info(f"[Redirect] {url} -> {new_url}")
         return True

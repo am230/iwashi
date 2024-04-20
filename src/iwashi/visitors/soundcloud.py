@@ -37,7 +37,8 @@ class Soundcloud(SiteVisitor):
             return
 
         context.create_result(
-            "Soundcloud",
+            self,
+            id=id,
             url=url,
             name=info["data"]["username"],
             description=info["data"]["description"],

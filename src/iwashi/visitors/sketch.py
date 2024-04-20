@@ -33,7 +33,8 @@ class Sketch(SiteVisitor):
             raise Exception(f"User is must be unique: {id}")
         user = users.popitem()[1]
         context.create_result(
-            "Pixiv Sketch",
+            self,
+            id=id,
             url=url,
             name=user["name"],
             description=user["description"],

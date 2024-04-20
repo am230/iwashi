@@ -35,7 +35,8 @@ class TikTok(SiteVisitor):
         user_info = user_detail["userInfo"]
         user = user_info["user"]
         context.create_result(
-            "TikTok",
+            self,
+            id=id,
             url=url,
             name=user["nickname"],
             description=user["signature"],

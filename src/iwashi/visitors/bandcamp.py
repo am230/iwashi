@@ -33,7 +33,8 @@ class Bandcamp(SiteVisitor):
         description_element = soup.select_one(".signed-out-artists-bio-text")
         profile_picture_element = soup.select_one(".band-photo")
         context.create_result(
-            site_name="Bandcamp",
+            self,
+            id=id,
             url=url,
             name=data["name"],
             description=description_element.text.strip()

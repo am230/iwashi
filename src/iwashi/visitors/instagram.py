@@ -53,7 +53,8 @@ class Instagram(SiteVisitor):
         if info_res.status // 100 != 2 or info_res.history:
             logger.warning("[Instagram] Blocked by Instagram")
             context.create_result(
-                "Instagram",
+                self,
+                id=id,
                 url=url,
                 name=id,
                 description="Blocked by Instagram",
@@ -62,7 +63,8 @@ class Instagram(SiteVisitor):
         info: Root = await info_res.json()
         user = info["data"]["user"]
         context.create_result(
-            site_name="Instagram",
+            self,
+            id=id,
             url=url,
             name=user["full_name"],
             profile_picture=user["profile_pic_url"],

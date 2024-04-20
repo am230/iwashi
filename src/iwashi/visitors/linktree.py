@@ -28,7 +28,8 @@ class Linktree(SiteVisitor):
         data: Root = json.loads(data_element.get_text())
         info = data["props"]["pageProps"]
         context.create_result(
-            "Linktree",
+            self,
+            id=id,
             url=url,
             description=info["description"],
             profile_picture=info["profilePictureUrl"],

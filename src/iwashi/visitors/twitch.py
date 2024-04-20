@@ -54,7 +54,8 @@ class Twitch(SiteVisitor):
             logger.warning(f"[Twitch] Could not find user for {url}")
             return
         context.create_result(
-            "Twitch",
+            self,
+            id=id,
             url=url,
             name=user["displayName"],
             description=user["description"],

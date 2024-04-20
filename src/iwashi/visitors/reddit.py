@@ -27,7 +27,8 @@ class Reddit(SiteVisitor):
         info: Root = await res.json()
 
         context.create_result(
-            "Reddit",
+            self,
+            id=id,
             url=url,
             name=info["data"]["name"],
             description=info["data"]["subreddit"]["public_description"],

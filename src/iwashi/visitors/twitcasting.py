@@ -37,7 +37,8 @@ class TwitCasting(SiteVisitor):
             description = element.attrs.get("content")
 
         context.create_result(
-            "TwitCasting",
+            self,
+            id=id,
             url=url,
             name=name,
             description=description,

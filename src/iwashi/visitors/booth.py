@@ -24,7 +24,8 @@ class Booth(SiteVisitor):
         avater_element = soup.select_one(".avatar-image")
 
         context.create_result(
-            "Booth",
+            self,
+            id=id,
             url=url,
             name=name,
             description=description,

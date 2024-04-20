@@ -66,7 +66,8 @@ class Spotify(SiteVisitor):
             )[-1]["url"]
 
         context.create_result(
-            "Spotify",
+            self,
+            id=id,
             url=url,
             name=profile["name"],
             description=profile["biography"]["text"],

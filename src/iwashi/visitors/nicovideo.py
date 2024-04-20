@@ -44,7 +44,8 @@ class Nicovideo(SiteVisitor):
         info: Root = json.loads(element.attrs["data-initial-data"])
         user = info["state"]["userDetails"]["userDetails"]["user"]
         context.create_result(
-            "Nicovideo",
+            self,
+            id=id,
             url=url,
             name=user["nickname"],
             description=user["description"],

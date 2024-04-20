@@ -33,7 +33,8 @@ class Note(SiteVisitor):
         data = data_root[0]["mainEntity"]
 
         context.create_result(
-            "Note",
+            self,
+            id=id,
             url=url,
             name=data["name"],
             description=data["description"],

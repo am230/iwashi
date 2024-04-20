@@ -83,12 +83,18 @@ class Twitter(SiteVisitor):
             return
         result = info["data"]["user"]["result"]
         if result["__typename"] == "UserUnavailable":
-            context.create_result("Twitter", url=url, name="<UserUnavailable>")
+            context.create_result(
+                self,
+                id=id,
+                url=url,
+                name="<UserUnavailable>",
+            )
             return
 
         data = result["legacy"]
         context.create_result(
-            "Twitter",
+            self,
+            id=id,
             url=url,
             name=data["name"],
             description=data["description"],

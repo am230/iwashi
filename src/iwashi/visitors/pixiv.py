@@ -38,7 +38,8 @@ class Pixiv(SiteVisitor):
 
         for user in info["user"].values():
             context.create_result(
-                "Pixiv",
+                self,
+                id=id,
                 url=url,
                 name=user["name"],
                 description=user["comment"],

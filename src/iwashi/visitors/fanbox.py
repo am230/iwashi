@@ -33,7 +33,8 @@ class Fanbox(SiteVisitor):
             logger.warning(f"[Fanbox] Could not find user for {url}")
             return
         context.create_result(
-            "Fanbox",
+            self,
+            id=id,
             url=url,
             name=info["body"]["user"]["name"],
             description=info["body"]["description"],

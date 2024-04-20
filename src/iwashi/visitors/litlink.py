@@ -32,7 +32,8 @@ class LitLink(SiteVisitor):
         profile = data["props"]["pageProps"]["profile"]
 
         context.create_result(
-            "LitLink",
+            self,
+            id=id,
             url=url,
             name=profile["name"],
             description=profile["profileText"],

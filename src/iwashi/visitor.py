@@ -12,9 +12,10 @@ HTTP_REGEX = "(https?://)?(www.)?"
 
 @dataclass
 class Result:
+    visitor: SiteVisitor
+    id: str
     url: str
-    site_name: Optional[str]
-    title: Optional[str]
+    name: Optional[str]
     description: Optional[str]
     profile_picture: Optional[str]
 
@@ -65,16 +66,18 @@ class Context:
 
     def create_result(
         self,
-        site_name: str,
+        site_visitor: SiteVisitor,
+        id: str,
         url: str,
         name: Optional[str] = None,
         description: Optional[str] = None,
         profile_picture: Optional[str] = None,
     ) -> Result:
         self.result = Result(
-            site_name=site_name,
+            visitor=site_visitor,
+            id=id,
             url=url,
-            title=name,
+            name=name,
             description=description,
             profile_picture=profile_picture,
         )
