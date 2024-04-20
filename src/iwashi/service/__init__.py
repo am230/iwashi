@@ -17,6 +17,7 @@ from .twitch import Twitch
 from .twitter import Twitter
 from .youtube import Youtube
 from .spotify import Spotify
+from .github import Github
 
 
 __all__ = [
@@ -39,6 +40,7 @@ __all__ = [
     "Twitter",
     "Youtube",
     "Spotify",
+    "Github",
 ]
 
 SERVICES = {
@@ -61,4 +63,5 @@ SERVICES = {
     Twitter(),
     Youtube(),
     Spotify(),
+    Github(),
 }
