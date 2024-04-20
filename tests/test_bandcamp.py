@@ -1,7 +1,7 @@
 import pytest
 from iwashi.visitor import Result
 from iwashi.service.bandcamp import Bandcamp
-from tests.visitors.test import _test_service
+from tests.service_tester import _test_service
 
 
 @pytest.mark.asyncio

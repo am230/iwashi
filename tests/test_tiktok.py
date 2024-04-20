@@ -1,7 +1,7 @@
 import pytest
 from iwashi.service.tiktok import TikTok
 from iwashi.visitor import Result
-from tests.visitors.test import _test_service
+from tests.service_tester import _test_service
 
 
 @pytest.mark.asyncio
