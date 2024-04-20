@@ -7,7 +7,8 @@ from tests.service_tester import _test_service
 @pytest.mark.asyncio
 async def test_github():
     service = Github()
-    correct_result = Result(
+    service = Github
+    correct = Result(
         service=service,
         id="astral-sh",
         url="https://github.com/astral-sh",
@@ -20,7 +21,7 @@ async def test_github():
     )
     await _test_service(
         service,
-        correct_result,
+        correct,
         "https://github.com/astral-sh",
         "https://github.com/astral-sh/rye",
     )

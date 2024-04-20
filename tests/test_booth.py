@@ -7,7 +7,8 @@ from tests.service_tester import _test_service
 @pytest.mark.asyncio
 async def test_booth():
     service = Booth()
-    correct_result = Result(
+    service = Booth
+    correct = Result(
         service=service,
         id="miluda",
         url="https://miluda.booth.pm",
@@ -22,7 +23,7 @@ async def test_booth():
     )
     await _test_service(
         service,
-        correct_result,
+        correct,
         "https://miluda.booth.pm/",
         "https://miluda.booth.pm/items/397",
     )

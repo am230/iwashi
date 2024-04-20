@@ -7,7 +7,8 @@ from tests.service_tester import _test_service
 @pytest.mark.asyncio
 async def test_fanbox():
     service = Fanbox()
-    correct_result = Result(
+    service = Fanbox
+    correct = Result(
         service=service,
         id="masahiro-emotion",
         url="https://masahiro-emotion.fanbox.cc",
@@ -18,7 +19,7 @@ async def test_fanbox():
     )
     await _test_service(
         service,
-        correct_result,
+        correct,
         "https://masahiro-emotion.fanbox.cc/",
         "https://masahiro-emotion.fanbox.cc/posts/7382756",
     )
