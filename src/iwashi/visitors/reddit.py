@@ -20,7 +20,7 @@ class Reddit(SiteVisitor):
         )
 
     async def visit(self, context: Context, id: str):
-        url = f"https://reddit.com/user/{id}"
+        url = f"https://www.reddit.com/user/{id}"
         res = await context.session.get(
             f"https://www.reddit.com/user/{id}/about.json",
         )
