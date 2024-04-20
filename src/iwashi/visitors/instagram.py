@@ -19,15 +19,16 @@ class Instagram(SiteVisitor):
         match = self.regex.match(url)
         if match is None:
             return url
-        return f'https://www.instagram.com/{match.group("id")}'
+        return match.group("id")
 
     async def visit(self, context: Context, id: str):
+        url = f"https://www.instagram.com/{id}"
         session = aiohttp.ClientSession(
             headers={
                 "authority": "www.instagram.com",
                 "accept": "*/*",
                 "accept-language": "en-US,en;q=0.9",
-                "referer": f"https://www.instagram.com/{id}/",
+                "referer": url,
                 "sec-ch-prefers-color-scheme": "dark",
                 "sec-ch-ua": '"Not?A_Brand";v="8", "Chromium";v="108", "Microsoft Edge";v="108"',
                 "sec-fetch-dest": "empty",
@@ -40,7 +41,6 @@ class Instagram(SiteVisitor):
             | BASE_HEADERS,
         )
 
-        url = f"https://www.instagram.com/{id}/"
         res = await context.session.get(url)
         match = re.search(r"\"X-IG-App-ID\": ?\"(?P<id>\d{15})\"", await res.text())
         if match is None:
@@ -67,94 +67,123 @@ class Instagram(SiteVisitor):
             return
         info: Root = await info_res.json()
         user = info["data"]["user"]
-        context.create_result("Instagram", url=url, description=user["biography"])
+        context.create_result(
+            site_name="Instagram",
+            url=url,
+            name=user["full_name"],
+            profile_picture=user["profile_pic_url"],
+            description=user["biography"],
+        )
 
         for link in user["bio_links"]:
             context.enqueue_visit(link["url"])
 
 
-class BioLinksItem0(TypedDict):
-    title: str
-    lynx_url: str
+class FriendshipStatus(TypedDict):
+    following: bool
+    blocking: bool
+    is_bestie: bool
+    is_feed_favorite: bool
+    is_restricted: bool
+    muting: bool
+    is_muting_reel: bool
+    outgoing_request: bool
+    followed_by: bool
+    incoming_request: bool
+
+
+class HdProfilePicUrlInfo(TypedDict):
     url: str
-    link_type: str
 
 
 class BiographyWithEntities(TypedDict):
-    raw_text: str
     entities: List
 
 
-class EdgeFollowedBy(TypedDict):
-    count: int
-
-
-class EdgeMutualFollowedBy(TypedDict):
-    count: int
-    edges: List
+class BioLinksItem(TypedDict):
+    link_type: str
+    lynx_url: str
+    title: str
+    url: str
 
 
 class User(TypedDict):
-    biography: str
-    bio_links: List[BioLinksItem0]
-    biography_with_entities: BiographyWithEntities
-    blocked_by_viewer: bool
-    restricted_by_viewer: None
-    country_block: bool
-    external_url: str
-    external_url_linkshimmed: str
-    edge_followed_by: EdgeFollowedBy
-    fbid: str
-    followed_by_viewer: bool
-    edge_follow: EdgeFollowedBy
-    follows_viewer: bool
+    friendship_status: FriendshipStatus
     full_name: str
-    group_metadata: None
-    has_ar_effects: bool
-    has_clips: bool
-    has_guides: bool
-    has_channel: bool
-    has_blocked_viewer: bool
-    highlight_reel_count: int
-    has_requested_viewer: bool
-    hide_like_and_view_counts: bool
-    id: str
-    is_business_account: bool
-    is_professional_account: bool
-    is_supervision_enabled: bool
-    is_guardian_of_viewer: bool
-    is_supervised_by_viewer: bool
-    is_supervised_user: bool
-    is_embeds_disabled: bool
-    is_joined_recently: bool
-    guardian_id: None
-    business_address_json: None
-    business_contact_method: str
-    business_email: None
-    business_phone_number: None
-    business_category_name: None
-    overall_category_name: None
-    category_enum: None
-    category_name: str
+    gating: None
+    is_memorialized: bool
     is_private: bool
-    is_verified: bool
-    edge_mutual_followed_by: EdgeMutualFollowedBy
-    profile_pic_url: str
-    profile_pic_url_hd: str
-    requested_by_viewer: bool
-    should_show_category: bool
-    should_show_public_contacts: bool
-    transparency_label: None
-    transparency_product: str
+    has_story_archive: None
     username: str
-    connected_fb_page: None
+    is_regulated_c18: bool
+    regulated_news_in_locations: List
+    text_post_app_badge_label: str
+    show_text_post_app_badge: bool
+    eligible_for_text_app_activation_badge: bool
+    hide_text_app_activation_badge_on_text_app: bool
+    pk: str
+    live_broadcast_visibility: None
+    live_broadcast_id: None
+    profile_pic_url: str
+    hd_profile_pic_url_info: HdProfilePicUrlInfo
+    is_unpublished: bool
+    mutual_followers_count: int
+    profile_context_links_with_user_ids: List
+    biography_with_entities: BiographyWithEntities
+    account_badges: List
+    bio_links: List[BioLinksItem]
+    external_lynx_url: str
+    external_url: str
+    ai_agent_type: None
+    has_chaining: bool
+    fbid_v2: str
+    supervision_info: None
+    interop_messaging_user_fbid: str
+    account_type: int
+    biography: str
+    is_embeds_disabled: bool
+    show_account_transparency_details: bool
+    is_verified: bool
+    is_professional_account: None
+    follower_count: int
+    address_street: str
+    city_name: str
+    is_business: bool
+    zip: str
+    category: str
+    should_show_category: bool
     pronouns: List
+    transparency_label: None
+    transparency_product: None
+    following_count: int
+    media_count: int
+    latest_reel_media: int
+    total_clips_count: int
+    latest_besties_reel_media: int
+    reel_media_seen_timestamp: int
+    id: str
+
+
+class User0(TypedDict):
+    pk: str
+    id: str
+    can_see_organic_insights: bool
+    has_onboarded_to_text_post_app: bool
+
+
+class Viewer(TypedDict):
+    user: User0
 
 
 class Data(TypedDict):
     user: User
+    viewer: Viewer
+
+
+class Extensions(TypedDict):
+    is_final: bool
 
 
 class Root(TypedDict):
     data: Data
-    status: str
+    extensions: Extensions
