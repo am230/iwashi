@@ -12,9 +12,10 @@ HTTP_REGEX = "(https?://)?(www.)?"
 
 @dataclass
 class Result:
+    service: Service
+    id: str
     url: str
-    site_name: Optional[str]
-    title: Optional[str]
+    name: Optional[str]
     description: Optional[str]
     profile_picture: Optional[str]
 
@@ -29,7 +30,7 @@ class Result:
 
 
 class Visitor(Protocol):
-    async def visit(self, url: str, context: Context, **kwargs) -> Result:
+    async def visit(self, url: str, context: Context) -> Result | None:
         ...
 
     def mark_visited(self, url: str) -> None:
@@ -41,7 +42,7 @@ class Visitor(Protocol):
 
 class FakeVisitor(Visitor):
     def __init__(self):
-        self.queue = []
+        self.queue: List[str] = []
 
     async def visit(self, url, context, **kwargs):
         raise NotImplementedError
@@ -59,23 +60,24 @@ class FakeVisitor(Visitor):
 @dataclass
 class Context:
     session: aiohttp.ClientSession
-    url: str
     visitor: Visitor
     parent: Optional[Context] = None
     result: Optional[Result] = None
 
     def create_result(
         self,
-        site_name: str,
+        service: Service,
+        id: str,
         url: str,
         name: Optional[str] = None,
         description: Optional[str] = None,
         profile_picture: Optional[str] = None,
     ) -> Result:
         self.result = Result(
-            site_name=site_name,
+            service=service,
+            id=id,
             url=url,
-            title=name,
+            name=name,
             description=description,
             profile_picture=profile_picture,
         )
@@ -93,34 +95,37 @@ class Context:
     def mark_visited(self, url: str) -> None:
         self.visitor.mark_visited(url)
 
-    def create_context(self, url: str) -> Context:
-        return Context(session=self.session, url=url, visitor=self.visitor, parent=self)
+    def create_context(self) -> Context:
+        return Context(session=self.session, visitor=self.visitor, parent=self)
 
     def enqueue_visit(self, url: str) -> None:
         self.link(url)
         self.visitor.enqueue_visit(url, self)
 
 
-class SiteVisitor(abc.ABC):
-    NAME: Optional[str] = None
-    URL_REGEX: Optional[re.Pattern] = None
+class Service(abc.ABC):
+    def __init__(self, name: str, regex: re.Pattern):
+        self.name = name
+        self.regex = regex
 
     def match(self, url, context: Context) -> Optional[re.Match]:
-        if self.URL_REGEX is None:
-            raise NotImplementedError()
-        return self.URL_REGEX.match(url)
+        return self.regex.match(url)
 
-    async def normalize(self, context: Context, url: str) -> str | None:
-        return url
+    async def resolve_id(self, context: Context, url: str) -> str | None:
+        match = self.regex.search(url)
+        return match and match.group("id")
 
     @abc.abstractmethod
-    async def visit(self, url, context: Context, **kwargs) -> Optional[Result]:
+    async def visit(self, context: Context, id: str) -> Optional[Result]:
         raise NotImplementedError()
 
     async def visit_url(
-        self, url: str, session: aiohttp.ClientSession
-    ) -> Result | None:
+        self, session: aiohttp.ClientSession, url: str
+    ) -> Optional[Result]:
         visitor = FakeVisitor()
-        context = Context(session=session, url=url, visitor=visitor)
-        await self.visit(url, context)
+        context = Context(session=session, visitor=visitor)
+        id = await self.resolve_id(context, url)
+        if id is None:
+            return None
+        await self.visit(context, id)
         return context.result
