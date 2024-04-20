@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import abc
+from datetime import timedelta
 import re
 from dataclasses import dataclass, field
 from typing import List, Optional, Protocol, Set
 
 import aiohttp
+
+from iwashi.throttle import Throttle
 
 HTTP_REGEX = "(https?://)?(www.)?"
 
@@ -105,6 +108,12 @@ class Context:
 
 
 class Service(abc.ABC):
+    throttle: Throttle
+
+    def __init_subclass__(cls) -> None:
+        cls.throttle = Throttle(timedelta(seconds=5))
+        return super().__init_subclass__()
+
     def __init__(self, name: str, regex: re.Pattern):
         self.name = name
         self.regex = regex
@@ -123,10 +132,11 @@ class Service(abc.ABC):
     async def visit_url(
         self, session: aiohttp.ClientSession, url: str
     ) -> Optional[Result]:
-        visitor = FakeVisitor()
-        context = Context(session=session, visitor=visitor)
-        id = await self.resolve_id(context, url)
-        if id is None:
-            return None
-        await self.visit(context, id)
-        return context.result
+        async with self.throttle:
+            visitor = FakeVisitor()
+            context = Context(session=session, visitor=visitor)
+            id = await self.resolve_id(context, url)
+            if id is None:
+                return None
+            await self.visit(context, id)
+            return context.result

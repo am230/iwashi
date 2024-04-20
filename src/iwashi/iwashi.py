@@ -63,7 +63,8 @@ class Iwashi(Visitor):
                 if identifier in self.visited_ids:
                     continue
                 self.visited_ids.add(identifier)
-                await service.visit(context, id)
+                async with service.throttle:
+                    await service.visit(context, id)
             except Exception as e:
                 logger.warning(
                     f"[Service Error] {service.name} failed to visit {normalized_url}"
