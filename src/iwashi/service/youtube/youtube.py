@@ -5,7 +5,7 @@ from urllib import parse
 
 import bs4
 
-from iwashi.helper import BASE_HEADERS, HTTP_REGEX
+from iwashi.helper import BASE_HEADERS, HTTP_REGEX, traverse
 from iwashi.visitor import Context, Service
 
 from .types import thumbnails, ytinitialdata
@@ -100,29 +100,58 @@ class Youtube(Service):
     def parse_token(
         self, data: ytinitialdata
     ) -> Tuple[str | None, Tuple[str, str] | None]:
-        # TODO: 地獄
-        first_link = None
-        c4TabbedHeaderRenderer = data["header"]["c4TabbedHeaderRenderer"]
-        if "headerLinks" not in c4TabbedHeaderRenderer:
+        # FIXME: 地獄
+        first_link: str | None = None
+        # c4TabbedHeaderRenderer = data["header"]["c4TabbedHeaderRenderer"]
+        c4TabbedHeaderRenderer = (
+            traverse(data)
+            .map(lambda x: x.get("header"))
+            .map(lambda x: x.get("c4TabbedHeaderRenderer"))
+            .get()
+        )
+        if (
+            c4TabbedHeaderRenderer is None
+            or "headerLinks" not in c4TabbedHeaderRenderer
+        ):
             return (first_link, None)
-        channelHeaderLinksViewModel = c4TabbedHeaderRenderer["headerLinks"][
-            "channelHeaderLinksViewModel"
-        ]
-        if "firstLink" in channelHeaderLinksViewModel:
-            first_link = channelHeaderLinksViewModel["firstLink"]["commandRuns"][0][
-                "onTap"
-            ]["innertubeCommand"]["urlEndpoint"]["url"]
-        if "more" not in channelHeaderLinksViewModel:
+        first_link = (
+            traverse(c4TabbedHeaderRenderer)
+            .map(lambda x: x.get("headerLinks"))
+            .map(lambda x: x.get("channelHeaderLinksViewModel"))
+            .map(lambda x: x.get("firstLink"))
+            .map(lambda x: x.get("commandRuns"))
+            .map(lambda x: x[0])
+            .map(lambda x: x.get("onTap"))
+            .map(lambda x: x.get("innertubeCommand"))
+            .map(lambda x: x.get("urlEndpoint"))
+            .map(lambda x: x.get("url"))
+            .get()
+        )
+        endpoint = (
+            traverse(c4TabbedHeaderRenderer)
+            .map(lambda x: x.get("headerLinks"))
+            .map(lambda x: x.get("channelHeaderLinksViewModel"))
+            .map(lambda x: x.get("more"))
+            .map(lambda x: x.get("commandRuns"))
+            .map(lambda x: x[0])
+            .map(lambda x: x.get("onTap"))
+            .map(lambda x: x.get("innertubeCommand"))
+            .map(lambda x: x.get("showEngagementPanelEndpoint"))
+            .map(lambda x: x.get("engagementPanel"))
+            .map(lambda x: x.get("engagementPanelSectionListRenderer"))
+            .map(lambda x: x.get("content"))
+            .map(lambda x: x.get("sectionListRenderer"))
+            .map(lambda x: x.get("contents"))
+            .map(lambda x: x[0])
+            .map(lambda x: x.get("itemSectionRenderer"))
+            .map(lambda x: x.get("contents"))
+            .map(lambda x: x[0])
+            .map(lambda x: x.get("continuationItemRenderer"))
+            .map(lambda x: x.get("continuationEndpoint"))
+            .get()
+        )
+        if endpoint is None:
             return (first_link, None)
-        runs = channelHeaderLinksViewModel["more"]["commandRuns"]
-        command = runs[0]["onTap"]["innertubeCommand"]
-        if "showEngagementPanelEndpoint" not in command:
-            raise RuntimeError("token not found")
-        contents1 = command["showEngagementPanelEndpoint"]["engagementPanel"][
-            "engagementPanelSectionListRenderer"
-        ]["content"]["sectionListRenderer"]["contents"]
-        contents2 = contents1[0]["itemSectionRenderer"]["contents"]
-        endpoint = contents2[0]["continuationItemRenderer"]["continuationEndpoint"]
         api_url = endpoint["commandMetadata"]["webCommandMetadata"]["apiUrl"]
         token = endpoint["continuationCommand"]["token"]
         return (first_link, (api_url, token))

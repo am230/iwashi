@@ -1,4 +1,4 @@
-from typing import List, NotRequired, TypedDict
+from typing import List, TypedDict
 
 
 class thumbnail(TypedDict):
@@ -96,8 +96,8 @@ class more(TypedDict):
 
 
 class channelHeaderLinksViewModel(TypedDict):
-    firstLink: NotRequired[firstLink]
-    more: NotRequired[more]
+    firstLink: firstLink
+    more: more
 
 
 class headerLinks(TypedDict):
@@ -117,7 +117,7 @@ class c4TabbedHeaderRenderer(TypedDict):
     title: str
     avatar: thumbnails
     banner: thumbnails
-    headerLinks: NotRequired[headerLinks]
+    headerLinks: headerLinks
     trackingParams: str
     channelHandleText: runs
     style: str

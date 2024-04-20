@@ -1,3 +1,4 @@
+from __future__ import annotations
 import asyncio
 import random
 import re
@@ -128,3 +129,39 @@ def cache_async(func: Callable[..., Any]) -> Callable[..., Any]:
         return result
 
     return wrapper
+
+
+class Traverser[T]:
+    def __init__(self, value: T | None = None):
+        self.value = value
+
+    def map[V](self, func: Callable[[T], V], default: V | None = None) -> Traverser[V]:
+        if self.value is None:
+            return TRAVERSE_NONE
+        value = func(self.value)
+        if value is None:
+            return Traverser(default)
+        return Traverser(value)
+
+    def get(self, default: T | None = None) -> T | None:
+        if self.value is None:
+            return default
+        return self.value
+
+    def unwrap(self) -> T:
+        if self.value is None:
+            raise ValueError("Value is None")
+        return self.value
+
+    def is_none(self) -> bool:
+        return self.value is None
+
+
+TRAVERSE_NONE = Traverser(None)
+
+
+def traverse[T](value: T | None) -> Traverser[T]:
+    """
+    Traverse a value that may be None.
+    """
+    return Traverser(value)
