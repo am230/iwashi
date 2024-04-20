@@ -20,6 +20,7 @@ from .spotify import Spotify
 from .github import Github
 from .itchio import Itchio
 from .kofi import Kofi
+from .patreon import Patreon
 
 __all__ = [
     "Bandcamp",
@@ -44,6 +45,7 @@ __all__ = [
     "Github",
     "Itchio",
     "Kofi",
+    "Patreon",
 ]
 
 SERVICES = {
@@ -69,4 +71,5 @@ SERVICES = {
     Github(),
     Itchio(),
     Kofi(),
+    Patreon(),
 }
