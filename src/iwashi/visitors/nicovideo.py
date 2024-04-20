@@ -28,7 +28,7 @@ class Nicovideo(SiteVisitor):
                 f'https://www.nicovideo.jp/mylist/{match.group("id")}'
             )
             return await self.resolve_id(context, str(res.url))
-        return f'nicovideo.jp/user/{match.group("id")}'
+        return match.group("id")
 
     async def visit(self, context: Context, id: str):
         url = f"https://www.nicovideo.jp/user/{id}"
