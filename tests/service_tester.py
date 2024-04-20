@@ -2,6 +2,7 @@ from typing import Iterable
 
 import aiohttp
 
+from iwashi.helper import BASE_HEADERS
 from iwashi.visitor import Context, FakeVisitor, Result, Service
 
 
@@ -20,7 +21,7 @@ def iterable_eq(a: Iterable, b: Iterable) -> bool:
 async def _test_service(service: Service, correct_result: Result, *urls: str) -> None:
     # resolve id
     visitor = FakeVisitor()
-    session = aiohttp.ClientSession()
+    session = aiohttp.ClientSession(headers=BASE_HEADERS)
     for url in urls:
         context = Context(session=session, visitor=visitor)
         assert (
