@@ -1,7 +1,10 @@
 from __future__ import annotations
+from typing import TypedDict, List
+import asyncio
+import time
 import re
-from typing import List, TypedDict
 
+from loguru import logger
 
 from iwashi.helper import HTTP_REGEX
 from iwashi.visitor import Context, Service
@@ -14,7 +17,17 @@ class Github(Service):
             regex=re.compile(HTTP_REGEX + r"github\.com/(?P<id>[\w-]+)", re.IGNORECASE),
         )
 
+    async def wait_for_rate_limit(self, context: Context) -> None:
+        res = await context.session.get("https://api.github.com/rate_limit")
+        res.raise_for_status()
+        data: RateLimit = await res.json()
+        if data["rate"]["remaining"] == 0:
+            reset = data["rate"]["reset"]
+            logger.info(f"Rate limit reached. Waiting until {reset}")
+            await asyncio.sleep(reset - time.time())
+
     async def visit(self, context: Context, id: str):
+        await self.wait_for_rate_limit(context)
         url = f"https://github.com/{id}"
         info_res = await context.session.get(f"https://api.github.com/users/{id}")
         info_res.raise_for_status()
@@ -76,3 +89,23 @@ class UserInfo(TypedDict):
 class SocialLink(TypedDict):
     provider: str
     url: str
+
+
+class Core(TypedDict):
+    limit: int
+    remaining: int
+    reset: int
+    used: int
+    resource: str
+
+
+class Resources(TypedDict):
+    core: Core
+    graphql: Core
+    integration_manifest: Core
+    search: Core
+
+
+class RateLimit(TypedDict):
+    resources: Resources
+    rate: Core
