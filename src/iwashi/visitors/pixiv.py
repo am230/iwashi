@@ -19,7 +19,7 @@ class Pixiv(SiteVisitor):
         )
 
     async def visit(self, context: Context, id: str):
-        url = f"https://pixiv.net/users/{id}"
+        url = f"https://www.pixiv.net/users/{id}"
         res = await context.session.get(
             url,
         )
