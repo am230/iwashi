@@ -43,12 +43,6 @@ class Instagram(Service):
             return
         context.session.headers["x-ig-app-id"] = match.group("id")
 
-        csrf_res = await context.session.get(
-            "https://www.instagram.com/ajax/bz?__d=dis"
-        )
-        csrf_res.raise_for_status()
-        session.headers.add("x-csrftoken", str(csrf_res.cookies["csrftoken"]))
-
         info_res = await context.session.get(
             f"https://www.instagram.com/api/v1/users/web_profile_info/?username={id}",
         )
