@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import re
-from typing import TypedDict
+from typing import List, TypedDict
 
 import bs4
 
@@ -27,12 +27,15 @@ class Note(SiteVisitor):
         data_element = soup.select_one("script[type='application/ld+json']")
         if data_element is None:
             return
-        data: Root = json.loads(data_element.text)
+        data_root: Root = json.loads(data_element.text)
+        if len(data_root) != 1:
+            raise Exception("Root element is not unique")
+        data = data_root[0]["mainEntity"]
 
         context.create_result(
             "Note",
             url=url,
-            name=data["headline"],
+            name=data["name"],
             description=data["description"],
             profile_picture=data["image"]["url"],
         )
@@ -49,26 +52,26 @@ class Note(SiteVisitor):
             context.enqueue_visit(link)
 
 
-Author = TypedDict("Author", {"@type": "str", "name": "str", "url": "str"})  # TODO
-Logo = TypedDict(
-    "Logo", {"@type": "str", "url": "str", "width": "str", "height": "str"}
-)
-Publisher = TypedDict("Publisher", {"@type": "str", "name": "str", "logo": "Logo"})
 Image = TypedDict(
     "Image", {"@type": "str", "url": "str", "width": "int", "height": "int"}
 )
-Root = TypedDict(
-    "Root",
+Mainentity = TypedDict(
+    "Mainentity",
     {
-        "@context": "str",
         "@type": "str",
-        "mainEntityOfPage": "str",
-        "headline": "str",
-        "datePublished": "str",
-        "dateModified": "str",
-        "author": "Author",
-        "publisher": "Publisher",
+        "name": "str",
+        "url": "str",
         "image": "Image",
         "description": "str",
     },
 )
+RootItem = TypedDict(
+    "RootItem",
+    {
+        "@context": "str",
+        "@type": "str",
+        "dateCreated": "str",
+        "mainEntity": "Mainentity",
+    },
+)
+Root = List[RootItem]
