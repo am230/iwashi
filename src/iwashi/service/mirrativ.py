@@ -6,10 +6,10 @@ from typing import Dict, List, TypedDict, Union
 import bs4
 
 from iwashi.helper import BASE_HEADERS, HTTP_REGEX
-from iwashi.visitor import Context, SiteVisitor
+from iwashi.visitor import Context, Service
 
 
-class Mirrativ(SiteVisitor):
+class Mirrativ(Service):
     def __init__(self):
         super().__init__(
             name="Mirrativ",

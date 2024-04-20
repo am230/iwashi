@@ -2,7 +2,7 @@ from typing import Iterable
 
 import aiohttp
 
-from iwashi.visitor import Context, FakeVisitor, Result, SiteVisitor
+from iwashi.visitor import Context, FakeVisitor, Result, Service
 
 
 def iterable_eq(a: Iterable, b: Iterable) -> bool:
@@ -17,22 +17,22 @@ def iterable_eq(a: Iterable, b: Iterable) -> bool:
     return True
 
 
-async def _test(site_visitor: SiteVisitor, correct_result: Result, *urls: str) -> None:
+async def _test_service(service: Service, correct_result: Result, *urls: str) -> None:
     # resolve id
     visitor = FakeVisitor()
     session = aiohttp.ClientSession()
     for url in urls:
         context = Context(session=session, visitor=visitor)
         assert (
-            await site_visitor.resolve_id(context, url) == correct_result.id
+            await service.resolve_id(context, url) == correct_result.id
         ), f"Failed to resolve id for {url}"
 
     # visit
     for url in urls:
-        result = await site_visitor.visit_url(session, url)
+        result = await service.visit_url(session, url)
         assert result, f"Failed to visit {url}"
         assert result.url == correct_result.url, f"URL mismatch for {url}"
-        assert result.visitor == correct_result.visitor, f"Visitor mismatch for {url}"
+        assert result.service == correct_result.service, f"Service mismatch for {url}"
         assert result.name == correct_result.name, f"Name mismatch for {url}"
         assert (
             result.description == correct_result.description

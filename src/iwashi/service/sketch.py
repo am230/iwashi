@@ -7,10 +7,10 @@ import re
 import bs4
 
 from iwashi.helper import HTTP_REGEX
-from iwashi.visitor import Context, SiteVisitor
+from iwashi.visitor import Context, Service
 
 
-class Sketch(SiteVisitor):
+class Sketch(Service):
     def __init__(self):
         super().__init__(
             name="Sketch",

@@ -9,10 +9,10 @@ from typing import List, TypedDict
 import bs4
 
 from iwashi.helper import HTTP_REGEX
-from iwashi.visitor import Context, SiteVisitor
+from iwashi.visitor import Context, Service
 
 
-class TikTok(SiteVisitor):
+class TikTok(Service):
     def __init__(self) -> None:
         super().__init__(
             name="TikTok",

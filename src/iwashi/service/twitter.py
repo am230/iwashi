@@ -5,10 +5,10 @@ from typing import List, TypedDict
 from loguru import logger
 
 from iwashi.helper import HTTP_REGEX
-from iwashi.visitor import Context, SiteVisitor
+from iwashi.visitor import Context, Service
 
 
-class Twitter(SiteVisitor):
+class Twitter(Service):
     def __init__(self) -> None:
         super().__init__(
             name="Twitter",

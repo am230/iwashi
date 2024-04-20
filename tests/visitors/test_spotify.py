@@ -1,14 +1,14 @@
 import pytest
-from iwashi.visitors.spotify import Spotify
+from iwashi.service.spotify import Spotify
 from iwashi.visitor import Result
-from tests.visitors.test import _test
+from tests.visitors.test import _test_service
 
 
 @pytest.mark.asyncio
 async def test_spotify():
-    visitor = Spotify()
+    service = Spotify()
     correct = Result(
-        visitor=visitor,
+        service=service,
         id="0CLW5934vy2XusynS1px1S",
         url="https://open.spotify.com/artist/0CLW5934vy2XusynS1px1S",
         name="Flyana Boss",
@@ -19,8 +19,8 @@ async def test_spotify():
             "https://instagram.com/flyanaboss",
         },
     )
-    await _test(
-        visitor,
+    await _test_service(
+        service,
         correct,
         "https://open.spotify.com/artist/0CLW5934vy2XusynS1px1S",
         "https://open.spotify.com/intl-ja/artist/0CLW5934vy2XusynS1px1S",

@@ -41,7 +41,7 @@ __all__ = [
     "Spotify",
 ]
 
-VISITORS = {
+SERVICES = {
     Bandcamp(),
     Booth(),
     Fanbox(),

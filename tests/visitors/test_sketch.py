@@ -1,14 +1,14 @@
 import pytest
-from iwashi.visitors.sketch import Sketch
+from iwashi.service.sketch import Sketch
 from iwashi.visitor import Result
-from tests.visitors.test import _test
+from tests.visitors.test import _test_service
 
 
 @pytest.mark.asyncio
 async def test_sketch():
-    visitor = Sketch()
+    service = Sketch()
     correct = Result(
-        visitor=visitor,
+        service=service,
         id="par1y",
         url="https://sketch.pixiv.net/@par1y",
         name="Paryi",
@@ -16,4 +16,4 @@ async def test_sketch():
         profile_picture="https://img-sketch.pixiv.net/uploads/user_icon/file/1980676/5116648097160323811.jpg",
         links={"https://twitter.com/par1y", "https://www.pixiv.net/users/par1y"},
     )
-    await _test(visitor, correct, "https://sketch.pixiv.net/@par1y")
+    await _test_service(service, correct, "https://sketch.pixiv.net/@par1y")

@@ -7,12 +7,12 @@ from typing import List, TypedDict
 import bs4
 
 from iwashi.helper import HTTP_REGEX
-from iwashi.visitor import Context, SiteVisitor
+from iwashi.visitor import Context, Service
 
 DATA_REGEX = r"preloadLink\s?=\s(?P<json>{[^;]+)"
 
 
-class Bandcamp(SiteVisitor):
+class Bandcamp(Service):
     def __init__(self):
         super().__init__(
             name="Bandcamp",

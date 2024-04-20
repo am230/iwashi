@@ -6,7 +6,7 @@ from urllib import parse
 import bs4
 
 from iwashi.helper import BASE_HEADERS, HTTP_REGEX
-from iwashi.visitor import Context, SiteVisitor
+from iwashi.visitor import Context, Service
 
 from .types import thumbnails, ytinitialdata
 from .types.about import AboutRes
@@ -14,7 +14,7 @@ from .types.about import AboutRes
 VANITY_ID_REGEX = re.compile(r"youtube.com/@(?P<id>[\w-]+)")
 
 
-class Youtube(SiteVisitor):
+class Youtube(Service):
     def __init__(self):
         super().__init__(
             name="Youtube",

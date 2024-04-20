@@ -1,14 +1,14 @@
 import pytest
-from iwashi.visitors.youtube import Youtube
+from iwashi.service.youtube import Youtube
 from iwashi.visitor import Result
-from tests.visitors.test import _test
+from tests.visitors.test import _test_service
 
 
 @pytest.mark.asyncio
 async def test_youtube():
-    visitor = Youtube()
+    service = Youtube()
     correct = Result(
-        visitor=visitor,
+        service=service,
         id="TomScottGo",
         url="https://www.youtube.com/@TomScottGo",
         name="Tom Scott",
@@ -16,8 +16,8 @@ async def test_youtube():
         profile_picture="https://yt3.googleusercontent.com/ytc/AIdro_k8W5CNSqxeITAoBY5JkpW3SVJlWitSOStGnvKYulDn21w=s900-c-k-c0x00ffffff-no-rj",
         links={"https://www.tomscott.com/"},
     )
-    await _test(
-        visitor,
+    await _test_service(
+        service,
         correct,
         "https://www.youtube.com/@TomScottGo",
         "https://www.youtube.com/@TomScottGo/community",

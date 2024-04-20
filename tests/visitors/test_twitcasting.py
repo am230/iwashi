@@ -1,14 +1,14 @@
 import pytest
-from iwashi.visitors.twitcasting import TwitCasting
+from iwashi.service.twitcasting import TwitCasting
 from iwashi.visitor import Result
-from tests.visitors.test import _test
+from tests.visitors.test import _test_service
 
 
 @pytest.mark.asyncio
 async def test_twitcasting():
-    visitor = TwitCasting()
+    service = TwitCasting()
     correct = Result(
-        visitor=visitor,
+        service=service,
         id="kaizi0817",
         url="https://twitcasting.tv/kaizi0817",
         name="細貝直心",
@@ -16,8 +16,8 @@ async def test_twitcasting():
         profile_picture="https://imagegw02.twitcasting.tv/image3s/pbs.twimg.com/profile_images/1412219689615302662/Gxz3711a_bigger.jpg",
         links={"https://twitter.com/kaizi0817"},
     )
-    await _test(
-        visitor,
+    await _test_service(
+        service,
         correct,
         "https://twitcasting.tv/kaizi0817",
         "https://twitcasting.tv/kaizi0817/archive/",

@@ -1,14 +1,14 @@
 import pytest
 from iwashi.visitor import Result
-from iwashi.visitors.fanbox import Fanbox
-from tests.visitors.test import _test
+from iwashi.service.fanbox import Fanbox
+from tests.visitors.test import _test_service
 
 
 @pytest.mark.asyncio
 async def test_fanbox():
-    visitor = Fanbox()
+    service = Fanbox()
     correct_result = Result(
-        visitor=visitor,
+        service=service,
         id="masahiro-emotion",
         url="https://masahiro-emotion.fanbox.cc",
         name="Masahiro Emoto",
@@ -16,8 +16,8 @@ async def test_fanbox():
         profile_picture="https://pixiv.pximg.net/c/160x160_90_a2_g5/fanbox/public/images/user/91970939/icon/aAE8bJoSKtAtHhWK17NUmMFI.jpeg",
         links={"https://x.com/masahiroemotion/"},
     )
-    await _test(
-        visitor,
+    await _test_service(
+        service,
         correct_result,
         "https://masahiro-emotion.fanbox.cc/",
         "https://masahiro-emotion.fanbox.cc/posts/7382756",

@@ -1,14 +1,14 @@
 import pytest
-from iwashi.visitors.litlink import LitLink
+from iwashi.service.litlink import LitLink
 from iwashi.visitor import Result
-from tests.visitors.test import _test
+from tests.visitors.test import _test_service
 
 
 @pytest.mark.asyncio
 async def test_litlink():
-    visitor = LitLink()
+    service = LitLink()
     correct = Result(
-        visitor=visitor,
+        service=service,
         id="leftpory5n",
         url="https://lit.link/leftpory5n",
         name="左ポリ５ン",
@@ -22,4 +22,4 @@ async def test_litlink():
             "https://www.pixiv.net/users/259841",
         },
     )
-    await _test(visitor, correct, "https://lit.link/leftpory5n")
+    await _test_service(service, correct, "https://lit.link/leftpory5n")

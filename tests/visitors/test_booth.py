@@ -1,14 +1,14 @@
 import pytest
 from iwashi.visitor import Result
-from iwashi.visitors.booth import Booth
-from tests.visitors.test import _test
+from iwashi.service.booth import Booth
+from tests.visitors.test import _test_service
 
 
 @pytest.mark.asyncio
 async def test_booth():
-    visitor = Booth()
+    service = Booth()
     correct_result = Result(
-        visitor=visitor,
+        service=service,
         id="miluda",
         url="https://miluda.booth.pm",
         name="Sunshine Mill 太陽光工場",
@@ -20,8 +20,8 @@ async def test_booth():
             "https://www.pixiv.net/users/161480",
         },
     )
-    await _test(
-        visitor,
+    await _test_service(
+        service,
         correct_result,
         "https://miluda.booth.pm/",
         "https://miluda.booth.pm/items/397",

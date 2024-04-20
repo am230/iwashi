@@ -7,10 +7,10 @@ from typing import Dict, List, Literal, TypedDict
 import bs4
 
 from iwashi.helper import HTTP_REGEX, BASE_HEADERS
-from iwashi.visitor import Context, SiteVisitor
+from iwashi.visitor import Context, Service
 
 
-class Spotify(SiteVisitor):
+class Spotify(Service):
     def __init__(self):
         super().__init__(
             name="Spotify",

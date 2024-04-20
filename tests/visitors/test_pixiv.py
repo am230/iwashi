@@ -1,14 +1,14 @@
 import pytest
-from iwashi.visitors.pixiv import Pixiv
+from iwashi.service.pixiv import Pixiv
 from iwashi.visitor import Result
-from tests.visitors.test import _test
+from tests.visitors.test import _test_service
 
 
 @pytest.mark.asyncio
 async def test_pixiv():
-    visitor = Pixiv()
+    service = Pixiv()
     correct = Result(
-        visitor=visitor,
+        service=service,
         id="137796",
         url="https://www.pixiv.net/users/137796",
         name="画力欠乏症／妄想屋（仮名）",
@@ -21,4 +21,4 @@ async def test_pixiv():
             "https://twitter.com/gaketsu_gk2",
         },
     )
-    await _test(visitor, correct, "https://www.pixiv.net/users/137796")
+    await _test_service(service, correct, "https://www.pixiv.net/users/137796")

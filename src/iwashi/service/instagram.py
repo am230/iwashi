@@ -5,10 +5,10 @@ import aiohttp
 from loguru import logger
 
 from iwashi.helper import BASE_HEADERS, HTTP_REGEX
-from iwashi.visitor import Context, SiteVisitor
+from iwashi.visitor import Context, Service
 
 
-class Instagram(SiteVisitor):
+class Instagram(Service):
     def __init__(self) -> None:
         super().__init__(
             name="Instagram",

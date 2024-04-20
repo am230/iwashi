@@ -12,7 +12,7 @@ HTTP_REGEX = "(https?://)?(www.)?"
 
 @dataclass
 class Result:
-    visitor: SiteVisitor
+    service: Service
     id: str
     url: str
     name: Optional[str]
@@ -66,7 +66,7 @@ class Context:
 
     def create_result(
         self,
-        site_visitor: SiteVisitor,
+        service: Service,
         id: str,
         url: str,
         name: Optional[str] = None,
@@ -74,7 +74,7 @@ class Context:
         profile_picture: Optional[str] = None,
     ) -> Result:
         self.result = Result(
-            visitor=site_visitor,
+            service=service,
             id=id,
             url=url,
             name=name,
@@ -103,7 +103,7 @@ class Context:
         self.visitor.enqueue_visit(url, self)
 
 
-class SiteVisitor(abc.ABC):
+class Service(abc.ABC):
     def __init__(self, name: str, regex: re.Pattern):
         self.name = name
         self.regex = regex

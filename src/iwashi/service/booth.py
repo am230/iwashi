@@ -3,10 +3,10 @@ import re
 import bs4
 
 from iwashi.helper import HTTP_REGEX, normalize_url
-from iwashi.visitor import Context, SiteVisitor
+from iwashi.visitor import Context, Service
 
 
-class Booth(SiteVisitor):
+class Booth(Service):
     def __init__(self) -> None:
         super().__init__(
             name="Booth",

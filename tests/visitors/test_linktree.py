@@ -1,14 +1,14 @@
 import pytest
-from iwashi.visitors.linktree import Linktree
+from iwashi.service.linktree import Linktree
 from iwashi.visitor import Result
-from tests.visitors.test import _test
+from tests.visitors.test import _test_service
 
 
 @pytest.mark.asyncio
 async def test_linktree():
-    visitor = Linktree()
+    service = Linktree()
     correct = Result(
-        visitor=visitor,
+        service=service,
         id="fantomtracks",
         url="https://linktr.ee/fantomtracks",
         name=None,
@@ -20,4 +20,4 @@ async def test_linktree():
             "https://twitter.com/fantomtracks",
         },
     )
-    await _test(visitor, correct, "https://linktr.ee/fantomtracks")
+    await _test_service(service, correct, "https://linktr.ee/fantomtracks")

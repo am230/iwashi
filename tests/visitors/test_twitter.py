@@ -1,14 +1,14 @@
 import pytest
-from iwashi.visitors.twitter import Twitter
+from iwashi.service.twitter import Twitter
 from iwashi.visitor import Result
-from tests.visitors.test import _test
+from tests.visitors.test import _test_service
 
 
 @pytest.mark.asyncio
 async def test_twitter():
-    visitor = Twitter()
+    service = Twitter()
     correct = Result(
-        visitor=visitor,
+        service=service,
         id="VALIGHT1",
         url="https://twitter.com/VALIGHT1",
         name="VALIGHT_YT",
@@ -16,4 +16,4 @@ async def test_twitter():
         profile_picture="https://pbs.twimg.com/profile_images/1512100269831639049/R4AjwP-9_normal.jpg",
         links={"https://youtube.com/channel/UCDRIfKm06-e1dwSbnU1H9Rw"},
     )
-    await _test(visitor, correct, "https://twitter.com/VALIGHT1")
+    await _test_service(service, correct, "https://twitter.com/VALIGHT1")

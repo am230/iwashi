@@ -1,14 +1,14 @@
 import pytest
-from iwashi.visitors.nicovideo import Nicovideo
+from iwashi.service.nicovideo import Nicovideo
 from iwashi.visitor import Result
-from tests.visitors.test import _test
+from tests.visitors.test import _test_service
 
 
 @pytest.mark.asyncio
 async def test_nicovideo():
-    visitor = Nicovideo()
+    service = Nicovideo()
     correct = Result(
-        visitor=visitor,
+        service=service,
         id="128134532",
         url="https://www.nicovideo.jp/user/128134532",
         name="ラベンダーP",
@@ -19,4 +19,4 @@ async def test_nicovideo():
             "https://twitter.com/lavenderp2018",
         },
     )
-    await _test(visitor, correct, "https://www.nicovideo.jp/user/128134532")
+    await _test_service(service, correct, "https://www.nicovideo.jp/user/128134532")

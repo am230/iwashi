@@ -1,14 +1,14 @@
 import pytest
-from iwashi.visitors.mirrativ import Mirrativ
+from iwashi.service.mirrativ import Mirrativ
 from iwashi.visitor import Result
-from tests.visitors.test import _test
+from tests.visitors.test import _test_service
 
 
 @pytest.mark.asyncio
 async def test_mirrativ():
-    visitor = Mirrativ()
+    service = Mirrativ()
     correct = Result(
-        visitor=visitor,
+        service=service,
         id="61244",
         url="https://www.mirrativ.com/user/61244",
         name="オトメくん！",
@@ -16,4 +16,4 @@ async def test_mirrativ():
         profile_picture="https://cdn.mirrativ.com/mirrorman-prod/image/profile_image/89aff406cd34ceb016d854536a189467ced65a54cdd88af4e671b9baa28ffbdf_m.jpeg?1710995124",
         links={"https://youtube.com/channel/UCymZH1hDOLGeyCLLf2SSy3A"},
     )
-    await _test(visitor, correct, "https://www.mirrativ.com/user/61244")
+    await _test_service(service, correct, "https://www.mirrativ.com/user/61244")

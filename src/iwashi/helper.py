@@ -19,7 +19,7 @@ def print_result(
     result: Result, indent_level=0, print: Callable[[str], Any] = print
 ) -> None:
     indent = indent_level * "    "
-    print(f"{indent}{result.visitor.name}")
+    print(f"{indent}{result.service.name}")
     print(f"{indent}|id    : {result.id}")
     print(f"{indent}│url   : {result.url}")
     print(f"{indent}│name  : {result.name}")

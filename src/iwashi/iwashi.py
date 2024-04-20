@@ -1,11 +1,10 @@
 import asyncio
 from typing import List, MutableSet, NamedTuple, Optional
 import aiohttp
-
 from loguru import logger
-
 from .helper import BASE_HEADERS, DEBUG, normalize_url
-from .visitor import Context, Result, SiteVisitor, Visitor
+from .visitor import Context, Result, Service, Visitor
+from .service import SERVICES
 
 
 class Identifier(NamedTuple):
@@ -15,14 +14,14 @@ class Identifier(NamedTuple):
 
 class Iwashi(Visitor):
     def __init__(self) -> None:
-        self.visitors: List[SiteVisitor] = []
+        self.services: List[Service] = []
         self.visited_urls: MutableSet[str] = set()
         self.visited_ids: MutableSet[Identifier] = set()
         self.tasks: List[asyncio.Task] = []
         self.session = aiohttp.ClientSession(headers=BASE_HEADERS)
 
-    def add_visitor(self, visitor: SiteVisitor) -> None:
-        self.visitors.append(visitor)
+    def add_service(self, service: Service) -> None:
+        self.services.append(service)
 
     def is_visited(self, url: str) -> bool:
         return url in self.visited_urls
@@ -51,23 +50,23 @@ class Iwashi(Visitor):
         context = context.create_context()
         if self.is_visited(normalized_url):
             return None
-        for visitor in self.visitors:
-            match = visitor.match(normalized_url, context)
+        for service in self.services:
+            match = service.match(normalized_url, context)
             if match is None:
                 continue
 
             try:
-                id = await visitor.resolve_id(context, normalized_url)
+                id = await service.resolve_id(context, normalized_url)
                 if id is None:
                     continue
-                identifier = Identifier(site=visitor.name, id=id)
+                identifier = Identifier(site=service.name, id=id)
                 if identifier in self.visited_ids:
                     continue
                 self.visited_ids.add(identifier)
-                await visitor.visit(context, id)
+                await service.visit(context, id)
             except Exception as e:
                 logger.warning(
-                    f"[Visitor Error] {normalized_url} {visitor.__class__.__name__}"
+                    f"[Service Error] {service.name} failed to visit {normalized_url}"
                 )
                 logger.exception(e)
                 if DEBUG:
@@ -80,7 +79,7 @@ class Iwashi(Visitor):
             if await self.try_redirect(normalized_url, context):
                 return context.result
             else:
-                logger.warning(f"[No Visitor Found] {normalized_url}")
+                logger.warning(f"[No Service] No service matched {normalized_url}")
 
         return context.result
 
@@ -107,15 +106,11 @@ class Iwashi(Visitor):
 
 def get_iwashi():
     iwashi = Iwashi()
-    add_visitors(iwashi)
+
+    for service in SERVICES:
+        iwashi.add_service(service)
+
     return iwashi
-
-
-def add_visitors(iwashi: Iwashi):
-    from .visitors import VISITORS
-
-    for visitor in VISITORS:
-        iwashi.add_visitor(visitor)
 
 
 async def visit(url: str, iwashi: Optional[Iwashi] = None) -> Optional[Result]:

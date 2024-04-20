@@ -1,14 +1,14 @@
 import pytest
 from iwashi.visitor import Result
-from iwashi.visitors.bandcamp import Bandcamp
-from tests.visitors.test import _test
+from iwashi.service.bandcamp import Bandcamp
+from tests.visitors.test import _test_service
 
 
 @pytest.mark.asyncio
 async def test_bandcamp():
-    visitor = Bandcamp()
+    service = Bandcamp()
     correct_result = Result(
-        visitor=visitor,
+        service=service,
         id="toxicholocaust",
         url="https://toxicholocaust.bandcamp.com",
         name="Toxic Holocaust",
@@ -16,4 +16,4 @@ async def test_bandcamp():
         profile_picture="https://f4.bcbits.com/img/0032604396_21.jpg",
         links={"http://toxicholocaust.com"},
     )
-    await _test(visitor, correct_result, "https://toxicholocaust.bandcamp.com")
+    await _test_service(service, correct_result, "https://toxicholocaust.bandcamp.com")

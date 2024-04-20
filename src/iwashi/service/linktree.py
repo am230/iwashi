@@ -5,10 +5,10 @@ from typing import List, Optional, TypedDict, Union
 import bs4
 
 from iwashi.helper import HTTP_REGEX
-from iwashi.visitor import Context, SiteVisitor
+from iwashi.visitor import Context, Service
 
 
-class Linktree(SiteVisitor):
+class Linktree(Service):
     def __init__(self) -> None:
         super().__init__(
             name="Linktree",

@@ -1,14 +1,14 @@
 import pytest
-from iwashi.visitors.tiktok import TikTok
+from iwashi.service.tiktok import TikTok
 from iwashi.visitor import Result
-from tests.visitors.test import _test
+from tests.visitors.test import _test_service
 
 
 @pytest.mark.asyncio
 async def test_tiktok():
-    visitor = TikTok()
+    service = TikTok()
     correct = Result(
-        visitor=visitor,
+        service=service,
         id="cocoyola",
         url="https://www.tiktok.com/@cocoyola",
         name="☀️🥂🫶🏻⭐️🍸",
@@ -16,8 +16,8 @@ async def test_tiktok():
         profile_picture=".tiktokcdn.com/tos-maliva-avt-0068/7325124622654341126~c5_1080x1080.jpeg",
         links=set(),
     )
-    await _test(
-        visitor,
+    await _test_service(
+        service,
         correct,
         "https://www.tiktok.com/@cocoyola?lang=ja-JP",
         "https://www.tiktok.com/@cocoyola/video/7234867719043157274?lang=ja-JP",
