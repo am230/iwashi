@@ -114,6 +114,6 @@ def get_iwashi():
     return iwashi
 
 
-async def visit(url: str, iwashi: Optional[Iwashi] = None) -> Optional[Result]:
+async def tree(url: str, iwashi: Optional[Iwashi] = None) -> Optional[Result]:
     iwashi = iwashi or get_iwashi()
     return await iwashi.tree(url)

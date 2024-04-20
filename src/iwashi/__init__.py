@@ -1,5 +1,5 @@
 from .helper import print_result
-from .iwashi import Result, visit
+from .iwashi import Result, tree
 
-__all__ = ["visit", "Result", "print_result"]
+__all__ = ["tree", "Result", "print_result"]
 __version__ = "2.1.7"

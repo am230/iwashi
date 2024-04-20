@@ -3,13 +3,13 @@ import asyncio
 import click
 
 from .helper import print_result
-from .iwashi import visit
+from .iwashi import tree
 
 
 @click.command()
 @click.argument("url", required=True)
 def main(url: str) -> None:
-    result = asyncio.run(visit(url))
+    result = asyncio.run(tree(url))
     assert result
     print("\n" * 4)
     print_result(result)
