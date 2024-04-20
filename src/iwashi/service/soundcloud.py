@@ -19,9 +19,8 @@ class Soundcloud(Service):
 
     async def visit(self, context: Context, id: str):
         url = f"https://soundcloud.com/{id}"
-        res = await context.session.get(
-            url,
-        )
+        res = await context.session.get(url)
+        res.raise_for_status()
         info_json = re.search(
             r"window\.__sc_hydration ?= ?(?P<info>.+);", await res.text()
         )
@@ -46,8 +45,9 @@ class Soundcloud(Service):
         )
 
         client_id_res = await context.session.get(
-            "https://a-v2.sndcdn.com/assets/0-bf97f26a.js",
+            "https://a-v2.sndcdn.com/assets/0-bf97f26a.js"
         )
+        client_id_res.raise_for_status()
         match = re.search(
             r"client_id: ?\"(?P<client_id>\w{32})\"", await client_id_res.text()
         )
@@ -84,6 +84,7 @@ class Soundcloud(Service):
             params=params,
             headers=headers,
         )
+        profile_res.raise_for_status()
         profile: List[ProfileItem] = await profile_res.json()
         for item in profile:
             context.enqueue_visit(item["url"])

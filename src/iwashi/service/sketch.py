@@ -22,6 +22,7 @@ class Sketch(Service):
     async def visit(self, context: Context, id: str):
         url = f"https://sketch.pixiv.net/@{id}"
         res = await context.session.get(url)
+        res.raise_for_status()
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
         element = soup.select_one("script#__NEXT_DATA__")
         if element is None:

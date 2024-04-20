@@ -19,9 +19,8 @@ class Mirrativ(Service):
         )
 
     async def fetch_scrf_token(self, context: Context) -> str | None:
-        res = await context.session.get(
-            "https://www.mirrativ.com/",
-        )
+        res = await context.session.get("https://www.mirrativ.com/")
+        res.raise_for_status()
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
         element = soup.select_one('meta[name="csrf-token"]')
         if element is None:
@@ -43,6 +42,7 @@ class Mirrativ(Service):
             },
             headers=headers,
         )
+        res.raise_for_status()
         info: Root = await res.json()
         context.create_result(
             self,

@@ -21,9 +21,8 @@ class Reddit(Service):
 
     async def visit(self, context: Context, id: str):
         url = f"https://www.reddit.com/user/{id}"
-        res = await context.session.get(
-            f"https://www.reddit.com/user/{id}/about.json",
-        )
+        res = await context.session.get(f"https://www.reddit.com/user/{id}/about.json")
+        res.raise_for_status()
         info: Root = await res.json()
 
         context.create_result(
@@ -35,9 +34,8 @@ class Reddit(Service):
             profile_picture=info["data"]["icon_img"],
         )
 
-        res = await context.session.get(
-            f"https://www.reddit.com/user/{id}/",
-        )
+        res = await context.session.get(f"https://www.reddit.com/user/{id}/")
+        res.raise_for_status()
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
         # noun="social_link"
         for element in soup.select('[noun="social_link"]'):

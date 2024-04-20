@@ -17,11 +17,8 @@ class Linktree(Service):
 
     async def visit(self, context: Context, id: str):
         url = f"https://linktr.ee/{id}"
-        res = await context.session.get(
-            url,
-        )
-        if res.status != 200:
-            return None
+        res = await context.session.get(url)
+        res.raise_for_status()
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
         data_element = soup.find(attrs={"id": "__NEXT_DATA__"})
         assert data_element

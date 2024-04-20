@@ -16,6 +16,7 @@ class Booth(Service):
     async def visit(self, context: Context, id: str) -> None:
         url = f"https://{id}.booth.pm"
         res = await context.session.get(url)
+        res.raise_for_status()
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
         name_element = soup.select_one(".shop-name")
         name = name_element.text if name_element is not None else None

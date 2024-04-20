@@ -20,9 +20,8 @@ class LitLink(Service):
 
     async def visit(self, context: Context, id: str):
         url = f"https://lit.link/{id}"
-        res = await context.session.get(
-            url,
-        )
+        res = await context.session.get(url)
+        res.raise_for_status()
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
         data_element = soup.find(attrs={"id": "__NEXT_DATA__"})
         if data_element is None:

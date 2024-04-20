@@ -31,6 +31,7 @@ class Spotify(Service):
     async def visit(self, context: Context, id: str):
         url = f"https://open.spotify.com/artist/{id}"
         response = await context.session.get(url, headers=BASE_HEADERS)
+        response.raise_for_status()
         soup = bs4.BeautifulSoup(await response.text(), "html.parser")
         access_token = await self.extract_access_token(soup)
 
@@ -55,6 +56,7 @@ class Spotify(Service):
             params=params,
             headers=headers | BASE_HEADERS,
         )
+        response.raise_for_status()
         data: ArtistResponse = await response.json()
         profile = data["data"]["artistUnion"]["profile"]
         avatar_image = data["data"]["artistUnion"]["visuals"]["avatarImage"]

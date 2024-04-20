@@ -23,6 +23,7 @@ class TikTok(Service):
     async def visit(self, context: Context, id: str) -> None:
         url = f"https://www.tiktok.com/@{id}"
         res = await context.session.get(url)
+        res.raise_for_status()
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
         element = soup.select_one("script#__UNIVERSAL_DATA_FOR_REHYDRATION__")
         if element is None:

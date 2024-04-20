@@ -47,8 +47,7 @@ class Youtube(Service):
         response = await context.session.get(
             f"https://www.youtube.com/watch?v={video_id}"
         )
-        if response.status == 404:
-            return None
+        response.raise_for_status()
         soup = bs4.BeautifulSoup(await response.text(), "html.parser")
         element = soup.select_one('span[itemprop="author"] > link[itemprop="url"]')
         if element is None:
@@ -66,8 +65,7 @@ class Youtube(Service):
                 "format": "json",
             },
         )
-        if res.status // 100 != 2:
-            return None
+        res.raise_for_status()
         data = await res.json()
         author_url = data.get("author_url")
         if author_url is None:
@@ -76,8 +74,7 @@ class Youtube(Service):
 
     async def _channel_by_url(self, context: Context, url: str) -> str | None:
         res = await context.session.get(url)
-        if res.status == 404:
-            return None
+        res.raise_for_status()
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
         data = self.extract_initial_data(soup)
         vanity_url = data["metadata"]["channelMetadataRenderer"]["vanityChannelUrl"]
@@ -141,8 +138,7 @@ class Youtube(Service):
     async def visit(self, context: Context, id: str):
         url = f"https://www.youtube.com/@{id}"
         res = await context.session.get(url)
-        if res.status // 100 != 2:
-            raise RuntimeError(f"HTTP Error: {res.status}")
+        res.raise_for_status()
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
         data = self.extract_initial_data(soup)
         vanity_id = data["metadata"]["channelMetadataRenderer"]["vanityChannelUrl"]
@@ -183,6 +179,7 @@ class Youtube(Service):
                 }
             ),
         )
+        about_res.raise_for_status()
         about_data: AboutRes = await about_res.json()
         links = about_data["onResponseReceivedEndpoints"][0][
             "appendContinuationItemsAction"

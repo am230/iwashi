@@ -24,6 +24,7 @@ class Bandcamp(Service):
     async def visit(self, context: Context, id: str) -> None:
         url = f"https://{id}.bandcamp.com"
         res = await context.session.get(url)
+        res.raise_for_status()
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
         script = soup.select_one("script[data-band]")
         if script is None:

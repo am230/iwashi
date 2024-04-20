@@ -36,6 +36,7 @@ class Instagram(Service):
         )
 
         res = await context.session.get(url)
+        res.raise_for_status()
         match = re.search(r"\"X-IG-App-ID\": ?\"(?P<id>\d{15})\"", await res.text())
         if match is None:
             logger.warning(f"[Instagram] No X-IG-App-ID found in {url}")
@@ -45,11 +46,13 @@ class Instagram(Service):
         csrf_res = await context.session.get(
             "https://www.instagram.com/ajax/bz?__d=dis"
         )
+        csrf_res.raise_for_status()
         session.headers.add("x-csrftoken", str(csrf_res.cookies["csrftoken"]))
 
         info_res = await context.session.get(
             f"https://www.instagram.com/api/v1/users/web_profile_info/?username={id}",
         )
+        info_res.raise_for_status()
         if info_res.status // 100 != 2 or info_res.history:
             logger.warning("[Instagram] Blocked by Instagram")
             context.create_result(

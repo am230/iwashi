@@ -16,10 +16,8 @@ class Twitch(Service):
 
     async def visit(self, context: Context, id: str):
         url = f"https://www.twitch.tv/{id}"
-
-        res = await context.session.get(
-            url,
-        )
+        res = await context.session.get(url)
+        res.raise_for_status()
         match = re.search(
             r'clientId ?= ?"(?P<token>kimne78kx3ncx6brgo4mv6wki5h1ko)"',
             await res.text(),
@@ -47,7 +45,7 @@ class Twitch(Service):
                 "Client-Id": token,
             },
         )
-
+        res.raise_for_status()
         info: Root = await res.json()
         user = info[0]["data"]["user"]
         if user is None:

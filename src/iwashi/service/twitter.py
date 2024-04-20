@@ -30,6 +30,7 @@ class Twitter(Service):
         res = await context.session.get(
             "https://abs.twimg.com/responsive-web/client-web/main.28fc48ca.js"
         )
+        res.raise_for_status()
         match = re.search('(AAAAA.*?)"', await res.text())
         assert match
         bearer_token = "Bearer " + match.group(1)
@@ -43,6 +44,7 @@ class Twitter(Service):
             "https://api.twitter.com/1.1/guest/activate.json",
             headers=self.headers,
         )
+        res.raise_for_status()
         data = await res.json()
         self.guest_token = data["guest_token"]
         return data["guest_token"]
@@ -77,6 +79,7 @@ class Twitter(Service):
             },
             headers=self.headers,
         )
+        res.raise_for_status()
         info: Root = await res.json()
         if not info["data"]:
             logger.warning(f"[Twitter] Could not find data for {url}")

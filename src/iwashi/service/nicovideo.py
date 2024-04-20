@@ -27,14 +27,14 @@ class Nicovideo(Service):
             res = await context.session.get(
                 f'https://www.nicovideo.jp/mylist/{match.group("id")}'
             )
+            res.raise_for_status()
             return await self.resolve_id(context, str(res.url))
         return match.group("id")
 
     async def visit(self, context: Context, id: str):
         url = f"https://www.nicovideo.jp/user/{id}"
-        res = await context.session.get(
-            f"https://www.nicovideo.jp/user/{id}",
-        )
+        res = await context.session.get(f"https://www.nicovideo.jp/user/{id}")
+        res.raise_for_status()
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
         element = soup.select_one("#js-initial-userpage-data")
         if element is None:

@@ -88,6 +88,7 @@ class Iwashi(Visitor):
             res = await context.session.get(
                 url, headers=BASE_HEADERS, allow_redirects=True, timeout=5
             )
+            res.raise_for_status()
         except aiohttp.ClientError as e:
             logger.exception(e)
             logger.warning(f"[Redirect] failed to redirect {url}")

@@ -24,6 +24,7 @@ class Fanbox(Service):
                 "referer": f"https://{id}.fanbox.cc/",
             },
         )
+        creator_res.raise_for_status()
         if creator_res.status // 100 == 4:
             logger.warning(f"[Fanbox] Could not find user for {url}")
             return

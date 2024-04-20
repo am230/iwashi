@@ -20,9 +20,8 @@ class Pixiv(Service):
 
     async def visit(self, context: Context, id: str):
         url = f"https://www.pixiv.net/users/{id}"
-        res = await context.session.get(
-            url,
-        )
+        res = await context.session.get(url)
+        res.raise_for_status()
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
         meta_element = soup.select_one(
             'meta[name="preload-data"][id="meta-preload-data"]'
@@ -54,6 +53,7 @@ class Pixiv(Service):
             resp = await context.session.get(
                 f"https://sketch.pixiv.net/api/pixiv/user/posts/latest?user_id={id}"
             )
+            res.raise_for_status()
             if resp.status == 200:
                 data = await resp.json()
                 context.enqueue_visit(data["data"]["user"]["url"])

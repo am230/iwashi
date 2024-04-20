@@ -19,6 +19,7 @@ class TwitCasting(Service):
     async def visit(self, context: Context, id: str):
         url = f"https://twitcasting.tv/{id}"
         res = await context.session.get(url)
+        res.raise_for_status()
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
         element = soup.select_one(".tw-user-nav-name")
         if element is None:
