@@ -21,12 +21,6 @@ class Bandcamp(SiteVisitor):
             ),
         )
 
-    async def resolve_id(self, context: Context, url: str) -> str | None:
-        match = self.regex.match(url)
-        if match is None:
-            return None
-        return match.group("id")
-
     async def visit(self, context: Context, id: str) -> None:
         url = f"https://{id}.bandcamp.com"
         res = await context.session.get(url)

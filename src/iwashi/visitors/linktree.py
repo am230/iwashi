@@ -15,12 +15,6 @@ class Linktree(SiteVisitor):
             regex=re.compile(HTTP_REGEX + r"linktr\.ee/(?P<id>\w+)", re.IGNORECASE),
         )
 
-    async def resolve_id(self, context: Context, url: str) -> str:
-        match = self.regex.match(url)
-        if match is None:
-            return url
-        return f'https://linktr.ee/{match.group("id")}'
-
     async def visit(self, context: Context, id: str):
         url = f"https://linktr.ee/{id}"
         res = await context.session.get(

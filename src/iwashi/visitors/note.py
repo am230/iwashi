@@ -14,14 +14,8 @@ class Note(SiteVisitor):
     def __init__(self):
         super().__init__(
             name="Note",
-            regex=re.compile(HTTP_REGEX + r"note\.com/(?P<user>[^/]+)", re.IGNORECASE),
+            regex=re.compile(HTTP_REGEX + r"note\.com/(?P<id>[^/]+)", re.IGNORECASE),
         )
-
-    async def resolve_id(self, context: Context, url: str) -> str:
-        match = self.regex.match(url)
-        if match is None:
-            return url
-        return f"https://note.com/{match.group('user')}"
 
     async def visit(self, context: Context, id: str):
         url = f"https://note.com/{id}"

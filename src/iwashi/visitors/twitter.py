@@ -24,12 +24,6 @@ class Twitter(SiteVisitor):
         self.bearer_token: str | None = None
         self.guest_token: str | None = None
 
-    async def resolve_id(self, context: Context, url: str) -> str:
-        match = self.regex.search(url)
-        if match is None:
-            return url
-        return f'https://twitter.com/{match.group("id")}'
-
     async def fetch_authorization(self, context: Context) -> str:
         if self.bearer_token:
             return self.bearer_token

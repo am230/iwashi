@@ -108,9 +108,9 @@ class SiteVisitor(abc.ABC):
     def match(self, url, context: Context) -> Optional[re.Match]:
         return self.regex.match(url)
 
-    @abc.abstractmethod
     async def resolve_id(self, context: Context, url: str) -> str | None:
-        raise NotImplementedError()
+        match = self.regex.search(url)
+        return match and match.group("id")
 
     @abc.abstractmethod
     async def visit(self, context: Context, id: str) -> Optional[Result]:

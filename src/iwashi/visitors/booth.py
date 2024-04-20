@@ -13,12 +13,6 @@ class Booth(SiteVisitor):
             regex=re.compile(HTTP_REGEX + r"(?P<id>[\w-]+)\.booth\.pm", re.IGNORECASE),
         )
 
-    async def resolve_id(self, context: Context, url: str) -> str:
-        match = self.regex.match(url)
-        if match is None:
-            return url
-        return match.group("id")
-
     async def visit(self, context: Context, id: str) -> None:
         url = f"https://{id}.booth.pm"
         res = await context.session.get(url)

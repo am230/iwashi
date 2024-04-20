@@ -19,12 +19,6 @@ class Reddit(SiteVisitor):
             ),
         )
 
-    async def resolve_id(self, context: Context, url: str) -> str:
-        match = self.regex.match(url)
-        if match is None:
-            return url
-        return f'https://reddit.com/user/{match.group("id")}'
-
     async def visit(self, context: Context, id: str):
         url = f"https://reddit.com/user/{id}"
         res = await context.session.get(

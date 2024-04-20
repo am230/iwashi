@@ -20,12 +20,6 @@ class Sketch(SiteVisitor):
             ),
         )
 
-    async def resolve_id(self, context: Context, url: str) -> str:
-        match = self.regex.match(url)
-        if match is None:
-            return url
-        return f'https://sketch.pixiv.net/@{match.group("id")}'
-
     async def visit(self, context: Context, id: str):
         url = f"https://sketch.pixiv.net/@{id}"
         res = await context.session.get(url)

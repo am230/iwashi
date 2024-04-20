@@ -15,12 +15,6 @@ class Instagram(SiteVisitor):
             regex=re.compile(HTTP_REGEX + r"instagram\.com/(?P<id>\w+)", re.IGNORECASE),
         )
 
-    async def resolve_id(self, context: Context, url: str) -> str:
-        match = self.regex.match(url)
-        if match is None:
-            return url
-        return match.group("id")
-
     async def visit(self, context: Context, id: str):
         url = f"https://www.instagram.com/{id}"
         session = aiohttp.ClientSession(

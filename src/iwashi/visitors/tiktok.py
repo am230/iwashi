@@ -20,12 +20,6 @@ class TikTok(SiteVisitor):
             ),
         )
 
-    async def resolve_id(self, context: Context, url: str) -> str:
-        match = self.regex.match(url)
-        if match is None:
-            return url
-        return f'https://tiktok.com/@{match.group("id")}'
-
     async def visit(self, context: Context, id: str) -> None:
         url = f"https://tiktok.com/@{id}"
         res = await context.session.get(

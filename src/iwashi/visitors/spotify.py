@@ -16,7 +16,7 @@ class Spotify(SiteVisitor):
             name="Spotify",
             regex=re.compile(
                 HTTP_REGEX
-                + r"(open\.)?spotify\.com\/(intl-[\w]*\/)?artist\/(?P<artist_id>[0-9a-zA-Z]+)",
+                + r"(open\.)?spotify\.com\/(intl-[\w]*\/)?artist\/(?P<id>[0-9a-zA-Z]+)",
                 re.IGNORECASE,
             ),
         )
@@ -27,12 +27,6 @@ class Spotify(SiteVisitor):
             raise RuntimeError("Token not found")
         data = Session(**json.loads(script.text))
         return data["accessToken"]
-
-    async def resolve_id(self, context: Context, url: str) -> str:
-        match = self.regex.match(url)
-        if match is None:
-            return url
-        return f"https://open.spotify.com/artist/{match.group('artist_id')}"
 
     async def visit(self, context: Context, id: str):
         url = f"https://open.spotify.com/artist/{id}"

@@ -14,12 +14,6 @@ class Fanbox(SiteVisitor):
             regex=re.compile(HTTP_REGEX + r"(?P<id>[\w-]+)\.fanbox\.cc", re.IGNORECASE),
         )
 
-    async def resolve_id(self, context: Context, url: str) -> str:
-        match = self.regex.match(url)
-        if match is None:
-            return url
-        return match.group("id")
-
     async def visit(self, context: Context, id: str):
         url = f"https://{id}.fanbox.cc"
         creator_res = await context.session.get(

@@ -18,12 +18,6 @@ class LitLink(SiteVisitor):
             regex=re.compile(HTTP_REGEX + r"lit\.link/(?P<id>\w+)", re.IGNORECASE),
         )
 
-    async def resolve_id(self, context: Context, url: str) -> str:
-        match = self.regex.match(url)
-        if match is None:
-            return url
-        return f'https://lit.link/{match.group("id")}'
-
     async def visit(self, context: Context, id: str):
         url = f"https://lit.link/{id}"
         res = await context.session.get(

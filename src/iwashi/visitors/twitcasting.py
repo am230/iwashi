@@ -16,12 +16,6 @@ class TwitCasting(SiteVisitor):
             ),
         )
 
-    async def resolve_id(self, context: Context, url: str) -> str:
-        match = self.regex.match(url)
-        if match is None:
-            return url
-        return f'https://twitcasting.tv/{match.group("id")}'
-
     async def visit(self, context: Context, id: str):
         url = f"https://twitcasting.tv/{id}"
         res = await context.session.get(

@@ -17,12 +17,6 @@ class Soundcloud(SiteVisitor):
             ),
         )
 
-    async def resolve_id(self, context: Context, url: str) -> str:
-        match = self.regex.match(url)
-        if match is None:
-            return url
-        return f'https://soundcloud.com/{match.group("id")}'
-
     async def visit(self, context: Context, id: str):
         url = f"https://soundcloud.com/{id}"
         res = await context.session.get(

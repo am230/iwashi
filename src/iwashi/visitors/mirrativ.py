@@ -18,12 +18,6 @@ class Mirrativ(SiteVisitor):
             ),
         )
 
-    async def resolve_id(self, context: Context, url: str) -> str:
-        match = self.regex.match(url)
-        if match is None:
-            return url
-        return f'https://mirrativ.com/user/{match.group("id")}'
-
     async def fetch_scrf_token(self, context: Context) -> str | None:
         res = await context.session.get(
             "https://www.mirrativ.com/",
