@@ -7,7 +7,6 @@ from tests.service_tester import _test_service
 @pytest.mark.asyncio
 async def test_booth():
     service = Booth()
-    service = Booth
     correct = Result(
         service=service,
         id="miluda",

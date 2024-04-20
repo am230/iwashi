@@ -7,7 +7,6 @@ from tests.service_tester import _test_service
 @pytest.mark.asyncio
 async def test_bandcamp():
     service = Bandcamp()
-    service = Bandcamp
     correct = Result(
         service=service,
         id="toxicholocaust",
