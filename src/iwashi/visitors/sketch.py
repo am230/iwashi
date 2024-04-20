@@ -1,11 +1,10 @@
 from __future__ import annotations
+from typing import Dict, List, NotRequired, TypedDict
 
 import json
 import re
-from typing import Dict, List, TypedDict
 
 import bs4
-from loguru import logger
 
 from iwashi.helper import HTTP_REGEX
 from iwashi.visitor import Context, SiteVisitor
@@ -26,17 +25,13 @@ class Sketch(SiteVisitor):
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
         element = soup.select_one("script#__NEXT_DATA__")
         if element is None:
-            logger.warning(f"__NEXT_DATA__ not found: {id}")
-            return
+            raise Exception(f"__NEXT_DATA__ not found: {id}")
         next_data = json.loads(element.text)
         data: Root = json.loads(next_data["props"]["pageProps"]["initialState"])
-        lives = tuple(data["live"]["lives"].values())
-        if len(lives) == 0:
-            return
-        live = lives[0]
         users = data["users"]["users"]
-        user_id = live["owner"]["user_id"]
-        user = users[user_id]
+        if len(users) != 1:
+            raise Exception(f"User is must be unique: {id}")
+        user = users.popitem()[1]
         context.create_result(
             "Pixiv Sketch",
             url=url,
@@ -44,67 +39,84 @@ class Sketch(SiteVisitor):
             description=user["description"],
             profile_picture=user["icon"]["photo"]["original"]["url"],
         )
-
-        context.enqueue_visit(f'https://pixiv.net/users/{user["pixiv_user_id"]}')
-
-
-class DescriptionFragmentsItem(TypedDict):
-    type: str
-    body: str
-    normalized_body: str
-
-
-class Sq800(TypedDict):
-    url: str
-
-
-class Thumbnail(TypedDict):
-    sq800: Sq800
-    w160: Sq800
-    w400: Sq800
-    w1280: Sq800
-    original: Sq800
+        social_accounts = user["social_accounts"]
+        if "twitter" in social_accounts:
+            unique_name = social_accounts["twitter"]["unique_name"]
+            context.enqueue_visit(f"https://twitter.com/{unique_name}")
+            del social_accounts["twitter"]
+        if "pixiv" in social_accounts:
+            unique_name = social_accounts["pixiv"]["unique_name"]
+            context.enqueue_visit(f"https://www.pixiv.net/users/{unique_name}")
+            del social_accounts["pixiv"]
+        if social_accounts:
+            raise Exception(f"Unknown social accounts: {social_accounts}")
 
 
-class Owner(TypedDict):
-    user_id: str
-    channel_id: str
-    thumbnail: Thumbnail
-    hls_movie: str
-    is_enabled_mic_input: bool
+class Amountpoint(TypedDict):
+    partial: bool
+    input: str
+    exchangeErrors: List
 
 
-class LiveInfo(TypedDict):
-    finished_at: None
-    description_fragments: List[DescriptionFragmentsItem]
-    is_r15: bool
-    is_closed: bool
-    mode: str
-    server: str
-    is_r18: bool
-    publicity: str
-    is_adult: bool
-    performers: List
-    chat_count: int
-    created_at: str
-    member_count: int
-    is_enabled_chat: bool
-    name: str
-    thumbnail: Thumbnail
-    total_audience_count: int
-    owner: Owner
-    audience_count: int
-    is_broadcasting: bool
-    heart_count: int
-    channel_id: str
-    deleted: bool
-    source: str
-    id: str
-    description: str
-    is_single: bool
-    performer_count: int
-    is_enabled_mic_input: bool
-    is_enabled_gifting: bool
+class Amountmoney(TypedDict):
+    partial: bool
+    input: str
+    transferErrors: List
+
+
+class Transfer(TypedDict):
+    to: str
+    amountPoint: Amountpoint
+    amountMoney: Amountmoney
+    confirmation: None
+
+
+class Reward(TypedDict):
+    balance: Dict
+    provisionalRewards: Dict
+    decrementHistories: Dict
+    rewards: Dict
+    rewardWallLink: Dict
+    bankAccount: Dict
+    transferring: bool
+    historying: bool
+    transfer: Transfer
+    terms: None
+
+
+class Temporarymedium(TypedDict):
+    temporaryMedium: Dict
+
+
+class Template(TypedDict):
+    themes: Dict
+
+
+class State(TypedDict):
+    state: Dict
+
+
+class Special(TypedDict):
+    contestResults: Dict
+
+
+class Feedback(TypedDict):
+    feedbacks: Dict
+    links: Dict
+
+
+class Contest(TypedDict):
+    contests: List
+
+
+class Info(TypedDict):
+    content: None
+    hidden: bool
+
+
+class Componentactionerror(TypedDict):
+    alert: None
+    info: Info
 
 
 class Options(TypedDict):
@@ -120,7 +132,7 @@ class Livelist(TypedDict):
 
 
 class Live(TypedDict):
-    lives: Dict[str, LiveInfo]
+    lives: Dict
     liveAdStages: Dict
     liveAvailability: bool
     liveClosedAvailability: bool
@@ -136,6 +148,104 @@ class Live(TypedDict):
     liveSummaryUrl: None
     liveList: Livelist
     unpresentedBlacklistedLiveChats: List
+
+
+class Comment(TypedDict):
+    comments: Dict
+    commentWalls: Dict
+    commentLinks: Dict
+    heartWalls: Dict
+    heartLinks: Dict
+
+
+class Tag(TypedDict):
+    endedTagCompletions: List
+    tags: List
+    tagWalls: Dict
+    tagLinks: Dict
+    tagUploadSuggested: Dict
+
+
+class Item(TypedDict):
+    items: Dict
+    itemWalls: Dict
+    itemLinks: Dict
+    itemRepliesWall: Dict
+    itemRepliesLink: Dict
+    itemTopicIds: List
+
+
+class Browser(TypedDict):
+    name: str
+    version: str
+    major: str
+    native: bool
+    uwp: bool
+
+
+class Engine(TypedDict):
+    name: str
+    version: str
+
+
+class Cpu(TypedDict):
+    architecture: str
+
+
+class Agent(TypedDict):
+    ua: str
+    browser: Browser
+    engine: Engine
+    os: Engine
+    device: Dict
+    cpu: Cpu
+
+
+class App(TypedDict):
+    agent: Agent
+    locale: str
+    mayPromptNotificationSubscription: bool
+    renderingPreparedAt: int
+    preparedSimpleDrawOnClient: bool
+    uploadables: List[str]
+    isInit: bool
+
+
+class Gifting(TypedDict):
+    lastGiftingItem: None
+    giftingItems: List
+    points: List
+
+
+class Contact(TypedDict):
+    faqCategories: List
+
+
+class Announcement(TypedDict):
+    announcements: List
+
+
+class DescriptionFragmentsItem(TypedDict):
+    type: str
+    body: str
+    normalized_body: str
+
+
+class Twitter(TypedDict):
+    unique_name: str
+    expired: bool
+    is_public: bool
+
+
+class Pixiv(TypedDict):
+    unique_name: str
+    expired: bool
+    show_on_pixiv: bool
+
+
+class SocialAccounts(TypedDict):
+    twitter: NotRequired[Twitter]
+    pixiv: NotRequired[Pixiv]
 
 
 class Color(TypedDict):
@@ -190,12 +300,13 @@ class Stats(TypedDict):
     public_post_count: int
 
 
-class UserInfo(TypedDict):
-    description_fragments: List
+class User(TypedDict):
+    description_fragments: List[DescriptionFragmentsItem]
     name: str
     followed: bool
     following: bool
     blocking: bool
+    social_accounts: SocialAccounts
     icon: Icon
     unique_name: str
     post_ids: List
@@ -206,20 +317,34 @@ class UserInfo(TypedDict):
     stats: Stats
 
 
-Usercolors = TypedDict(
-    "Usercolors",
-    {"15241365": "str", "17391869": "str", "30087679": "str", "50150007": "str"},
-)
+Users = Dict[str, User]
+Usercolors = Dict[str, str]
 
 
 class Users0(TypedDict):
-    users: Dict[str, UserInfo]
+    users: Users
     userWalls: Dict
     userLinks: Dict
     userColors: Usercolors
     usersRecommended: List
     usersBlockedWall: List
     usersBlockedWallLink: Dict
+    account: Dict
+    accountSetting: Dict
+
+
+class Notifications(TypedDict):
+    wall: List
+    link: Dict
+    types: List
+
+
+class Privacypolicy(TypedDict):
+    privacyPolicyIsAccepted: None
+    privacyPolicyText: str
+    privacyPolicyUrl: str
+    privacyPolicyAcceptedVersion: str
+    privacyPolicyUpdatedAt: str
 
 
 class Params(TypedDict):
@@ -245,6 +370,47 @@ class Route(TypedDict):
 
 
 class Root(TypedDict):
+    reward: Reward
+    temporaryMedium: Temporarymedium
+    template: Template
+    state: State
+    special: Special
+    feedback: Feedback
+    contest: Contest
+    componentActionError: Componentactionerror
     live: Live
+    comment: Comment
+    tag: Tag
+    item: Item
+    app: App
+    gifting: Gifting
+    contact: Contact
+    announcement: Announcement
     users: Users0
+    notifications: Notifications
+    privacyPolicy: Privacypolicy
     route: Route
+
+
+class Pageprops(TypedDict):
+    initialState: str
+
+
+class Props(TypedDict):
+    pageProps: Pageprops
+    __N_SSP: bool
+
+
+class Query(TypedDict):
+    id: str
+
+
+class NEXT_DATA(TypedDict):
+    props: Props
+    page: str
+    query: Query
+    buildId: str
+    isFallback: bool
+    gssp: bool
+    customServer: bool
+    scriptLoader: List
