@@ -2,7 +2,6 @@ from __future__ import annotations
 from typing import Dict, Union
 
 import json
-from pathlib import Path
 import re
 from typing import List, TypedDict
 
@@ -24,7 +23,6 @@ class TikTok(Service):
     async def visit(self, context: Context, id: str) -> None:
         url = f"https://www.tiktok.com/@{id}"
         res = await context.session.get(url)
-        Path("tiktok.html").write_bytes(await res.read())
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
         element = soup.select_one("script#__UNIVERSAL_DATA_FOR_REHYDRATION__")
         if element is None:
