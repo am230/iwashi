@@ -14,7 +14,7 @@ class Itchio(Service):
             name="itch.io",
             regex=re.compile(
                 HTTP_REGEX
-                + r"((?P<id_subdomain>[\w-]+)\.itch\.io/|itch\.io/profile/(?P<id_profile>))",
+                + r"((?P<id_subdomain>[\w-]+)\.itch\.io/|itch\.io/profile/(?P<id_profile>[\w-]+))",
                 re.IGNORECASE,
             ),
         )
