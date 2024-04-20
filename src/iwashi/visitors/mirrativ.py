@@ -29,11 +29,11 @@ class Mirrativ(SiteVisitor):
         return element.attrs.get("content")
 
     async def visit(self, context: Context, id: str):
-        url = f"https://www.mirrativ.com/api/user/profile?user_id={id}"
+        url = f"https://www.mirrativ.com/user/{id}"
 
         headers = BASE_HEADERS | {
             "accept": "application/json",
-            "x-csrf-token": self.fetch_scrf_token(context),
+            "x-csrf-token": await self.fetch_scrf_token(context),
         }
 
         res = await context.session.get(

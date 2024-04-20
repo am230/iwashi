@@ -43,6 +43,13 @@ class LitLink(SiteVisitor):
             if "url" not in link:
                 continue
             context.enqueue_visit(link["url"])
+        for link in profile["profileLinks"]:
+            if "buttonLink" not in link:
+                continue
+            button_link = link["buttonLink"]
+            if button_link is None:
+                continue
+            context.enqueue_visit(button_link["url"])
 
 
 class SnsiconlinksItem(TypedDict):
