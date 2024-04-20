@@ -99,7 +99,8 @@ class Context:
         return Context(session=self.session, visitor=self.visitor, parent=self)
 
     def enqueue_visit(self, url: str) -> None:
-        self.link(url)
+        if self.result is not None:
+            self.link(url)
         self.visitor.enqueue_visit(url, self)
 
 
