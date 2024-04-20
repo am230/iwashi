@@ -23,6 +23,7 @@ async def test_itchio():
     await _test_service(
         service,
         correct,
+        "https://itch.io/profile/sebastian",
         "https://sebastian.itch.io/",
         "https://sebastian.itch.io/tiny-chess-bots",
     )
