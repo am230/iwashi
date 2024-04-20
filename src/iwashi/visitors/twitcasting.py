@@ -18,29 +18,29 @@ class TwitCasting(SiteVisitor):
 
     async def visit(self, context: Context, id: str):
         url = f"https://twitcasting.tv/{id}"
-        res = await context.session.get(
-            url,
-        )
+        res = await context.session.get(url)
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
-        # name: .tw-user-nav-name
         element = soup.select_one(".tw-user-nav-name")
         if element is None:
             logger.warning(f"[TwitCasting] Could not find name for {url}")
             return
         name = element.text.strip()
-        # icon: .tw-user-nav-icon > img
         element = soup.select_one(".tw-user-nav-icon > img")
         profile_picture = None
         if element is not None:
             attr = element["src"]
             if isinstance(attr, str):
                 profile_picture = normalize_url(attr)
+        description: str | None = None
+        element = soup.select_one('meta[name="description"]')
+        if element is not None:
+            description = element.attrs.get("content")
 
         context.create_result(
             "TwitCasting",
             url=url,
             name=name,
-            description=None,
+            description=description,
             profile_picture=profile_picture,
         )
 
