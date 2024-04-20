@@ -15,7 +15,7 @@ async def test():
 
     for url in {"https://www.reddit.com/user/MarcusFaze/"}:
         context = Context(session=session, visitor=visitor)
-        assert await reddit.resolve_id(context, url) == "HeroWarsDominionEra"
+        assert await reddit.resolve_id(context, url) == "MarcusFaze"
 
 
 @pytest.mark.asyncio
