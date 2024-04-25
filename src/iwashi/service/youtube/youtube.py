@@ -38,7 +38,10 @@ class Youtube(Service):
             )
         if type in ("channel", "user", "c"):
             return await self._channel_by_url(context, url)
-        return uri.path.split("/")[1]
+        if len(uri.path) > 1:
+            maybe_vanity = uri.path.split("/")[1]
+            return self._id_from_vanity_url(f"https://youtube.com/@{maybe_vanity}")
+        return None
 
     async def _channel_by_video(self, context: Context, video_id: str) -> str | None:
         result = await self._channel_by_oembed(context, video_id)
