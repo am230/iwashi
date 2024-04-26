@@ -12,7 +12,7 @@ async def test_nicovideo():
         id="128134532",
         url="https://www.nicovideo.jp/user/128134532",
         name="ラベンダーP",
-        description="鉄道、東方、艦これ、ボカロ、ボイロ、野球、応援歌、阪神タイガース、千葉ロッテマリーンズ、埼玉西武ライオンズ、オリックスバファローズ、東方のすくすく白沢、艦これの連装砲ちゃんが好きな人です<br><br>2006年4月17日生まれで岡山県備前市日生町(カキオコで有名な町)に住んでます",
+        description="岡山県備前市日生町に住む2006年生まれの人 <br>好きなもの（鉄道、東方、艦これ、ボカロ、ボイロ、野球、中日、阪神、西武、オリックス、ロッテ、railwars、すくすく白沢）",
         profile_picture="https://secure-dcdn.cdn.nimg.jp/nicoaccount/usericon/12813/128134532.jpg?1710066983",
         links={
             "https://www.youtube.com/channel/UC4jehnRY1GBPBpg-Np4WFNg",
