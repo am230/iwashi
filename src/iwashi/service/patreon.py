@@ -1,7 +1,7 @@
 from __future__ import annotations
 import json
 import re
-from typing import List, TypedDict
+from typing import List, NotRequired, TypedDict
 
 import bs4
 from iwashi.helper import HTTP_REGEX
@@ -38,7 +38,7 @@ class Patreon(Service):
             profile_picture=data_root["author"]["image"]["contentUrl"],
         )
 
-        for link in data_root["sameAs"]:
+        for link in data_root.get("sameAs", []):
             context.enqueue_visit(link)
 
 
@@ -67,4 +67,4 @@ class Root(TypedDict):
     about: About
     primaryImageOfPage: Primaryimageofpage
     datePublished: str
-    sameAs: List[str]
+    sameAs: NotRequired[List[str]]
