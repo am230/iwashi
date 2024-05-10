@@ -11,7 +11,7 @@ from iwashi.visitor import Context, Service
 from .types import thumbnails, ytinitialdata
 from .types.about import AboutRes
 
-VANITY_ID_REGEX = re.compile(r"youtube.com/@(?P<id>[\w-.]+)")
+VANITY_ID_REGEX = re.compile(r"youtube.com/@(?P<id>[\w\-\.]+)")
 
 
 class Youtube(Service):
