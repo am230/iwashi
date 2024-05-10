@@ -41,6 +41,8 @@ class Youtube(Service):
             return await self._channel_by_video(
                 context, parse.parse_qs(uri.query)["v"][0]
             )
+        if type == "shorts":
+            return await self._channel_by_video(context, uri.path.split("/")[1])
         if type in ("channel", "user", "c"):
             return await self._channel_by_url(context, url)
         if len(uri.path) > 1:
@@ -73,7 +75,8 @@ class Youtube(Service):
                 "format": "json",
             },
         )
-        res.raise_for_status()
+        if not res.ok:
+            return None
         data = await res.json()
         author_url = data.get("author_url")
         if author_url is None:
