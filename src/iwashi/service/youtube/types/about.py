@@ -1,45 +1,66 @@
-from __future__ import annotations
-
-from typing import List, TypedDict
+from typing import TypedDict
 
 
-class Title(TypedDict):
-    content: str
+class UrlEndpoint(TypedDict):
+    url: str
 
 
-class Channelexternallinkviewmodel(TypedDict):
-    title: Title
-    link: Title
+class InnertubeCommand(TypedDict):
+    urlEndpoint: UrlEndpoint
+
+
+class OnTap(TypedDict):
+    innertubeCommand: InnertubeCommand
+
+
+class CommandRunsItem(TypedDict):
+    onTap: OnTap
+
+
+type CommandRuns = list[CommandRunsItem]
+
+
+class Link(TypedDict):
+    commandRuns: CommandRuns
+
+
+class ChannelExternalLinkViewModel(TypedDict):
+    link: Link
 
 
 class LinksItem(TypedDict):
-    channelExternalLinkViewModel: Channelexternallinkviewmodel
+    channelExternalLinkViewModel: ChannelExternalLinkViewModel
 
 
-class Aboutchannelviewmodel(TypedDict):
-    description: str
-    links: List[LinksItem]
+type Links = list[LinksItem]
+
+
+class AboutChannelViewModel(TypedDict):
+    links: Links
 
 
 class Metadata(TypedDict):
-    aboutChannelViewModel: Aboutchannelviewmodel
+    aboutChannelViewModel: AboutChannelViewModel
 
 
-class Aboutchannelrenderer(TypedDict):
+class AboutChannelRenderer(TypedDict):
     metadata: Metadata
 
 
-class ContinuationitemsItem(TypedDict):
-    aboutChannelRenderer: Aboutchannelrenderer
+class ContinuationItemsItem(TypedDict):
+    aboutChannelRenderer: AboutChannelRenderer
 
 
-class Appendcontinuationitemsaction(TypedDict):
-    continuationItems: List[ContinuationitemsItem]
+type ContinuationItems = list[ContinuationItemsItem]
 
 
-class OnresponsereceivedendpointsItem(TypedDict):
-    appendContinuationItemsAction: Appendcontinuationitemsaction
+class AppendContinuationItemsAction(TypedDict):
+    continuationItems: ContinuationItems
+
+
+class OnResponseReceivedEndpointsItem(TypedDict):
+    appendContinuationItemsAction: AppendContinuationItemsAction
 
 
 class AboutRes(TypedDict):
-    onResponseReceivedEndpoints: List[OnresponsereceivedendpointsItem]
+    onResponseReceivedEndpoints: list[OnResponseReceivedEndpointsItem]

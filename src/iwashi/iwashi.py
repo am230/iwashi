@@ -30,11 +30,12 @@ class Iwashi(Visitor):
         self.visited_urls.add(url)
 
     async def tree(self, url: str, context: Optional[Context] = None) -> Result | None:
-        context = context or Context(session=self.session, visitor=self)
-        context = context.create_context()
-        result = await self.visit(url, context)
-        while self.tasks:
-            await self.tasks.pop()
+        async with self.session:
+            context = context or Context(session=self.session, visitor=self)
+            context = context.create_context()
+            result = await self.visit(url, context)
+            while self.tasks:
+                await self.tasks.pop()
 
         return result
 
@@ -87,7 +88,14 @@ class Iwashi(Visitor):
     async def try_redirect(self, url: str, context: Context) -> bool:
         try:
             res = await context.session.get(
-                url, headers=BASE_HEADERS, allow_redirects=True, timeout=5
+                url,
+                headers=BASE_HEADERS
+                | {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0",
+                    "Referer": url,
+                },
+                allow_redirects=True,
+                timeout=5,
             )
             res.raise_for_status()
         except aiohttp.ClientError as e:
