@@ -1,16 +1,11 @@
 [project]
 name = "iwashi"
-version = "3.0.0"
+version = "3.0.1"
 description = "Add your description here"
 authors = [
     { name = "am230", email = "111672334+am230@users.noreply.github.com" },
 ]
-dependencies = [
-    "aiohttp>=3.9.5",
-    "bs4>=0.0.2",
-    "loguru>=0.7.2",
-    "click>=8.1.7",
-]
+dependencies = ["aiohttp>=3.9.5", "bs4>=0.0.2", "loguru>=0.7.2", "click>=8.1.7"]
 readme = "README.md"
 requires-python = ">= 3.8"
 
