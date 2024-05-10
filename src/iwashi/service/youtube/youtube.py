@@ -127,7 +127,10 @@ class Youtube(Service):
                             return endpoint["continuationCommand"]["token"]
         else:
             data3: ProfileRes3 = data
-            for a in data3["header"]["c4TabbedHeaderRenderer"]["headerLinks"][
+            c4TabbedHeaderRenderer = data3["header"]["c4TabbedHeaderRenderer"]
+            if "headerLinks" not in c4TabbedHeaderRenderer:
+                return None
+            for a in c4TabbedHeaderRenderer["headerLinks"][
                 "channelHeaderLinksViewModel"
             ]["more"]["commandRuns"]:
                 for b in a["onTap"]["innertubeCommand"]["showEngagementPanelEndpoint"][
