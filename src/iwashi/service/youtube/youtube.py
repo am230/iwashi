@@ -134,9 +134,12 @@ class Youtube(Service):
             c4TabbedHeaderRenderer = data3["header"]["c4TabbedHeaderRenderer"]
             if "headerLinks" not in c4TabbedHeaderRenderer:
                 return None
-            for a in c4TabbedHeaderRenderer["headerLinks"][
+            channelHeaderLinksViewModel = c4TabbedHeaderRenderer["headerLinks"][
                 "channelHeaderLinksViewModel"
-            ]["more"]["commandRuns"]:
+            ]
+            if "more" not in channelHeaderLinksViewModel:
+                return None
+            for a in channelHeaderLinksViewModel["more"]["commandRuns"]:
                 for b in a["onTap"]["innertubeCommand"]["showEngagementPanelEndpoint"][
                     "engagementPanel"
                 ]["engagementPanelSectionListRenderer"]["content"][
