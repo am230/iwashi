@@ -42,7 +42,8 @@ class Youtube(Service):
                 context, parse.parse_qs(uri.query)["v"][0]
             )
         if type == "shorts":
-            return await self._channel_by_video(context, uri.path.split("/")[1])
+            video_id = uri.path.split("/")[-1]
+            return await self._channel_by_video(context, video_id)
         if type in ("channel", "user", "c"):
             return await self._channel_by_url(context, url)
         if len(uri.path) > 1:
