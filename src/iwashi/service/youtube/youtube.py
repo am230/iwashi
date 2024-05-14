@@ -5,7 +5,7 @@ from urllib import parse
 
 import bs4
 
-from iwashi.helper import HTTP_REGEX, normalize_url
+from iwashi.helper import HTTP_REGEX, normalize_url, traverse
 from iwashi.service.youtube.types.ytinitialdata2 import ProfileRes2
 from iwashi.service.youtube.types.ytinitialdata3 import ProfileRes3
 from iwashi.visitor import Context, Service
@@ -112,9 +112,14 @@ class Youtube(Service):
     async def get_token(self, data: Any) -> str | None:
         data2: ProfileRes2 = data
         if "pageHeaderRenderer" in data2["header"]:
-            suffix = data2["header"]["pageHeaderRenderer"]["content"][
+            pageHeaderViewModel = data2["header"]["pageHeaderRenderer"]["content"][
                 "pageHeaderViewModel"
-            ]["attribution"]["attributionViewModel"]["suffix"]
+            ]
+            if "attribution" not in pageHeaderViewModel:
+                return None
+            suffix = pageHeaderViewModel["attribution"]["attributionViewModel"][
+                "suffix"
+            ]
             if not suffix:
                 return None
             for a in suffix["commandRuns"]:

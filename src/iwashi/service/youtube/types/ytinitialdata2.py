@@ -1,4 +1,4 @@
-from typing import TypedDict
+from typing import NotRequired, TypedDict
 
 
 class WebCommandMetadata(TypedDict):
@@ -80,7 +80,7 @@ class Suffix(TypedDict):
 
 
 class AttributionViewModel(TypedDict):
-    suffix: Suffix
+    suffix: Suffix | None
 
 
 class Attribution(TypedDict):
@@ -88,7 +88,7 @@ class Attribution(TypedDict):
 
 
 class PageHeaderViewModel(TypedDict):
-    attribution: Attribution
+    attribution: NotRequired[Attribution]
 
 
 class Content(TypedDict):
@@ -100,7 +100,7 @@ class PageHeaderRenderer(TypedDict):
 
 
 class Header(TypedDict):
-    pageHeaderRenderer: PageHeaderRenderer
+    pageHeaderRenderer: NotRequired[PageHeaderRenderer]
 
 
 class ProfileRes2(TypedDict):
