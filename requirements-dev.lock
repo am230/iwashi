@@ -31,12 +31,12 @@ colorama==0.4.6
     # via click
     # via loguru
     # via pytest
-coverage==7.4.3
+coverage==7.5.1
     # via pytest-cov
 frozenlist==1.4.1
     # via aiohttp
     # via aiosignal
-idna==3.6
+idna==3.7
     # via requests
     # via yarl
 iniconfig==2.0.0
@@ -48,15 +48,15 @@ multidict==6.0.5
     # via yarl
 nodeenv==1.8.0
     # via pyright
-packaging==23.2
+packaging==24.0
     # via build
     # via pytest
-pluggy==1.4.0
+pluggy==1.5.0
     # via pytest
-pyproject-hooks==1.0.0
+pyproject-hooks==1.1.0
     # via build
 pyright==1.1.362
-pytest==8.1.0
+pytest==8.2.0
     # via pytest-asyncio
     # via pytest-cov
 pytest-asyncio==0.23.6
