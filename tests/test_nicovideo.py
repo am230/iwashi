@@ -1,4 +1,5 @@
 import pytest
+import requests
 from iwashi.service.nicovideo import Nicovideo
 from iwashi.visitor import Result
 from tests.service_tester import _test_service
@@ -6,6 +7,14 @@ from tests.service_tester import _test_service
 
 @pytest.mark.asyncio
 async def test_nicovideo():
+    if (
+        requests.get(
+            "https://www.nicovideo.jp/user/2008672",
+            allow_redirects=False,
+        ).status_code
+        != 200
+    ):
+        pytest.skip("nicovideo.jp is not available")
     service = Nicovideo()
     correct = Result(
         service=service,
