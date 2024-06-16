@@ -21,15 +21,15 @@ class TwitCasting(Service):
         res = await context.session.get(url)
         res.raise_for_status()
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
-        element = soup.select_one(".tw-user-nav-name")
+        element = soup.select_one("meta[property='og:title']")
         if element is None:
             logger.warning(f"[TwitCasting] Could not find name for {url}")
             return
-        name = element.text.strip()
-        element = soup.select_one(".tw-user-nav-icon > img")
+        name = element.attrs.get("content")
+        element = soup.select_one("meta[property='og:image']")
         profile_picture = None
         if element is not None:
-            attr = element["src"]
+            attr = element.attrs.get("content")
             if isinstance(attr, str):
                 profile_picture = normalize_url(attr)
         description: str | None = None
@@ -46,9 +46,9 @@ class TwitCasting(Service):
             profile_picture=profile_picture,
         )
 
-        links = set()  # TODO
-        for element in soup.select(".tw-follow-list-row-icon"):
-            links.add(element["href"])
+        links: set[str] = set()
+        for element in soup.select(".tw-live-author__commandbox--socials a"):
+            links.add(str(element.attrs.get("href")))
         for link in links:
             if link.startswith("/"):
                 continue
