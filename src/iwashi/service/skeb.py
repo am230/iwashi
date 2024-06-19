@@ -59,7 +59,8 @@ class Skeb(Service):
             profile_picture=data["avatar_url"],
         )
 
-        context.enqueue_visit(data["url"])
+        if data["url"]:
+            context.enqueue_visit(data["url"])
 
         NOT_SUPPORTED = None
         PROVIDERS = {
