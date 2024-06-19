@@ -16,7 +16,6 @@ async def test_skeb():
         profile_picture="https://pbs.twimg.com/profile_images/1648903417262403584/IOswj0Xs.jpg",
         links={
             "https://twitter.com/adultfear",
-            "http://adultfear.carrd.co",
         },
     )
     await _test_service(
