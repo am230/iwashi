@@ -9,17 +9,19 @@ async def test_skeb():
     service = Skeb()
     correct = Result(
         service=service,
-        id="adultfear",
-        url="https://skeb.jp/@adultfear",
-        name="nerrin ☀️",
-        description="Nerr (she/they) 20+ 🌺 EN/中文/日本語・Writer, GM, sometimes Artist・OCs, d&d, ttrpg, type-moon, toku, horror・yellow 🧡💛",
-        profile_picture="https://pbs.twimg.com/profile_images/1648903417262403584/IOswj0Xs.jpg",
+        id="bet_neb",
+        url="https://skeb.jp/@bet_neb",
+        name="ベトベト",
+        description="女の子のにおいが大好きです❤︎\n【skeb】https://skeb.jp/@bet_neb 【fanbox】https://betbet.fanbox.cc/",
+        profile_picture="https://pbs.twimg.com/profile_images/1776504267714822144/ABLom6_w.jpg",
         links={
-            "https://twitter.com/adultfear",
+            "https://betbet.fanbox.cc",
+            "https://www.pixiv.net/member.php?id=85335130",
+            "https://twitter.com/bet_neb",
         },
     )
     await _test_service(
         service,
         correct,
-        "https://skeb.jp/@adultfear",
+        "https://skeb.jp/@bet_neb",
     )

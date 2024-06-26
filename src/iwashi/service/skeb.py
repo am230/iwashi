@@ -18,13 +18,14 @@ class Skeb(Service):
         )
         self.request_key: str | None = None
 
-    async def fetch_request_key(self, context: Context, url: str) -> str:
+    async def fetch_request_key(self, context: Context, url: str) -> str | None:
         if self.request_key is not None:
             return self.request_key
         res = await context.session.get(url)
         request_key = res.cookies.get("request_key")
         if request_key is None:
-            raise RuntimeError("Could not find request_key")
+            logger.warning(f"Could not find request_key in {res.cookies}")
+            return None
         self.request_key = request_key.value
         return self.request_key
 
@@ -33,9 +34,13 @@ class Skeb(Service):
         request_key = await self.fetch_request_key(context, url)
         api_endpoint = f"https://skeb.jp/api/users/{id}"
 
-        cookies = {
-            "request_key": request_key,
-        }
+        cookies = (
+            {
+                "request_key": request_key,
+            }
+            if request_key
+            else None
+        )
 
         headers = {
             "accept": "application/json, text/plain, */*",
@@ -44,7 +49,9 @@ class Skeb(Service):
             "cache-control": "no-cache",
             "pragma": "no-cache",
             "priority": "u=1, i",
-            "referer": url,
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "same-origin",
+            "Referer": url,
         }
         res = await context.session.get(api_endpoint, cookies=cookies, headers=headers)
         res.raise_for_status()
