@@ -25,6 +25,7 @@ dev-dependencies = [
     "pytest-cov>=5.0.0",
     "pyright>=1.1.362",
     "requests>=2.31.0",
+    "pytest-xdist>=3.6.1",
 ]
 
 [tool.hatch.metadata]
