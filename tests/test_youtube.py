@@ -27,5 +27,6 @@ async def test_youtube():
         "https://www.youtube.com/@Femtanyl03/featured?sub_confirmation=1",
         "https://www.youtube.com/watch?v=MjhFNWBpiZ8",
         "https://youtu.be/MjhFNWBpiZ8?si=3nQomEKByaNZjtPQ",
+        "https://youtu.be/I1SNuS67Pb4",
         "youtu.be/MjhFNWBpiZ8",
     )
