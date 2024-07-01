@@ -1,11 +1,23 @@
 import pytest
+import requests
+from iwashi.helper import BASE_HEADERS
 from iwashi.service.patreon import Patreon
 from iwashi.visitor import Result
 from tests.service_tester import _test_service
 
 
 @pytest.mark.asyncio
-async def test_itchio():
+async def test_patreon():
+    if (
+        requests.get(
+            "https://www.patreon.com/",
+            headers=BASE_HEADERS,
+            allow_redirects=False,
+        ).status_code
+        != 200
+    ):
+        pytest.skip("patreon.com is not available")
+
     service = Patreon()
     correct = Result(
         service=service,

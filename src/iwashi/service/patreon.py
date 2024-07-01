@@ -4,7 +4,7 @@ import re
 from typing import List, NotRequired, TypedDict
 
 import bs4
-from iwashi.helper import HTTP_REGEX
+from iwashi.helper import BASE_HEADERS, HTTP_REGEX
 from iwashi.visitor import Context, Service
 
 
@@ -20,7 +20,7 @@ class Patreon(Service):
 
     async def visit(self, context: Context, id: str):
         url = f"https://www.patreon.com/{id}"
-        res = await context.session.get(url)
+        res = await context.session.get(url, headers={**BASE_HEADERS})
         res.raise_for_status()
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
         # <script type="application/ld+json">
