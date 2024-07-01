@@ -13,7 +13,7 @@ from iwashi.visitor import Context, Service
 from .types import thumbnails, ytinitialdata
 from .types.about import AboutRes
 
-VANITY_ID_REGEX = re.compile(r"youtube.com/@(?P<id>[\w\-.]+)")
+VANITY_ID_REGEX = re.compile(r"youtube.com/@(?P<id>[^/]+)")
 
 
 class Youtube(Service):
@@ -96,7 +96,8 @@ class Youtube(Service):
         match = VANITY_ID_REGEX.search(url)
         if match is None:
             return None
-        return match.group("id")
+        vanity_id = match.group("id")
+        return parse.unquote(vanity_id)
 
     def parse_thumbnail(self, thumbnails: thumbnails) -> str:
         size = 0
