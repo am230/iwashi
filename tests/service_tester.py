@@ -18,7 +18,12 @@ def iterable_eq(a: Iterable, b: Iterable) -> bool:
     return True
 
 
-async def _test_service(service: Service, correct_result: Result, *urls: str) -> None:
+async def _test_service(
+    service: Service,
+    correct_result: Result,
+    *urls: str,
+    skip_empty: bool = False,
+) -> None:
     # resolve id
     visitor = FakeVisitor()
     session = aiohttp.ClientSession(headers=BASE_HEADERS)
@@ -32,6 +37,8 @@ async def _test_service(service: Service, correct_result: Result, *urls: str) ->
     # visit
     for url in urls:
         result = await service.visit_url(session, url)
+        if skip_empty and result is None:
+            continue
         assert result, f"Failed to visit {url}"
         assert (
             result.url == correct_result.url

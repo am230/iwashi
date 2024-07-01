@@ -3,7 +3,7 @@ from typing import List, TypedDict
 
 from loguru import logger
 
-from iwashi.helper import HTTP_REGEX
+from iwashi.helper import BASE_HEADERS, HTTP_REGEX
 from iwashi.visitor import Context, Service
 
 
@@ -19,15 +19,19 @@ class Fanbox(Service):
         creator_res = await context.session.get(
             f"https://api.fanbox.cc/creator.get?creatorId={id}",
             headers={
+                **BASE_HEADERS,
                 "accept": "application/json",
                 "origin": f"https://{id}.fanbox.cc",
                 "referer": f"https://{id}.fanbox.cc/",
             },
         )
-        creator_res.raise_for_status()
+        if creator_res.headers.get("Cf-Mitigated") == "challenge":
+            logger.warning(f"[Fanbox] Detected Cloudflare challenge for {url}")
+            return
         if creator_res.status // 100 == 4:
             logger.warning(f"[Fanbox] Could not find user for {url}")
             return
+        creator_res.raise_for_status()
 
         info: Root = await creator_res.json()
         if "error" in info:
