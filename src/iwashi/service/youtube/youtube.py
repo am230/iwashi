@@ -34,7 +34,7 @@ class Youtube(Service):
             return await self._channel_by_video(context, uri.path[1:])
         type = next(filter(None, uri.path.split("/")))
         if type.startswith("@"):
-            return self._id_from_vanity_url(url)
+            return await self._id_from_vanity_url(context, url)
         if type == "playlist":
             return None
         if type == "watch":
@@ -48,7 +48,9 @@ class Youtube(Service):
             return await self._channel_by_url(context, url)
         if len(uri.path) > 1:
             maybe_vanity = uri.path.split("/")[1]
-            return self._id_from_vanity_url(f"https://youtube.com/@{maybe_vanity}")
+            return await self._id_from_vanity_url(
+                context, f"https://youtube.com/@{maybe_vanity}"
+            )
         return None
 
     async def _channel_by_video(self, context: Context, video_id: str) -> str | None:
@@ -66,7 +68,7 @@ class Youtube(Service):
         href = element.attrs.get("href")
         if href is None:
             return None
-        return self._id_from_vanity_url(href)
+        return await self._id_from_vanity_url(context, href)
 
     async def _channel_by_oembed(self, context: Context, video_id: str) -> str | None:
         res = await context.session.get(
@@ -82,7 +84,7 @@ class Youtube(Service):
         author_url = data.get("author_url")
         if author_url is None:
             return None
-        return self._id_from_vanity_url(author_url)
+        return await self._id_from_vanity_url(context, author_url)
 
     async def _channel_by_url(self, context: Context, url: str) -> str | None:
         res = await context.session.get(url)
@@ -90,14 +92,19 @@ class Youtube(Service):
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
         data = self.extract_initial_data(soup)
         vanity_url = data["metadata"]["channelMetadataRenderer"]["vanityChannelUrl"]
-        return self._id_from_vanity_url(vanity_url)
+        return self._parse_vanity_url(vanity_url)
 
-    def _id_from_vanity_url(self, url: str) -> str | None:
-        match = VANITY_ID_REGEX.search(url)
+    def _parse_vanity_url(self, vanity_url: str) -> str | None:
+        match = VANITY_ID_REGEX.search(vanity_url)
         if match is None:
             return None
-        vanity_id = match.group("id")
-        return parse.unquote(vanity_id)
+        return parse.unquote(match.group("id"))
+
+    async def _id_from_vanity_url(self, context: Context, url: str) -> str | None:
+        vanity_id = self._parse_vanity_url(url)
+        return await self._channel_by_url(
+            context, f"https://www.youtube.com/@{vanity_id}"
+        )
 
     def parse_thumbnail(self, thumbnails: thumbnails) -> str:
         size = 0
@@ -174,8 +181,8 @@ class Youtube(Service):
         res.raise_for_status()
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
         data = self.extract_initial_data(soup)
-        vanity_id = self._id_from_vanity_url(
-            data["metadata"]["channelMetadataRenderer"]["vanityChannelUrl"]
+        vanity_id = await self._id_from_vanity_url(
+            context, data["metadata"]["channelMetadataRenderer"]["vanityChannelUrl"]
         )
         name = data["metadata"]["channelMetadataRenderer"]["title"]
         description = data["metadata"]["channelMetadataRenderer"]["description"]

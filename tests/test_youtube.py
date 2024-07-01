@@ -47,4 +47,6 @@ async def test_youtube():
         service,
         correct,
         "https://youtu.be/LnbSAhgwipA",
+        "https://youtube.com/@二みかげ",
+        "https://youtube.com/@sitanagamikage",
     )
