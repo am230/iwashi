@@ -174,7 +174,9 @@ class Youtube(Service):
         res.raise_for_status()
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
         data = self.extract_initial_data(soup)
-        vanity_id = data["metadata"]["channelMetadataRenderer"]["vanityChannelUrl"]
+        vanity_id = self._id_from_vanity_url(
+            data["metadata"]["channelMetadataRenderer"]["vanityChannelUrl"]
+        )
         name = data["metadata"]["channelMetadataRenderer"]["title"]
         description = data["metadata"]["channelMetadataRenderer"]["description"]
         profile_picture = self.parse_thumbnail(
@@ -183,7 +185,7 @@ class Youtube(Service):
         context.create_result(
             self,
             id=id,
-            url=f"https://www.youtube.com/@{vanity_id.split('@')[1]}",
+            url=f"https://www.youtube.com/@{vanity_id}",
             name=name,
             description=description,
             profile_picture=profile_picture,
