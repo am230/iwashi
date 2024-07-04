@@ -35,7 +35,7 @@ async def test_youtube():
         service=service,
         id="二みかげ",
         url="https://www.youtube.com/@二みかげ",
-        name="ニみかげ /Vtuber",
+        name="ニみかげ",
         description="VTuberの二と書いて『したなが』、二みかげです！\nFPSからホラー(強制)を中心に配信してます。\nお喋り大好き、月曜日は定期雑談配信\n\n■メインゲーム\nAPEX\u3000-\u3000参加型・カジュアル・ランク\u3000-\nプレゼントされしまったホラーゲーム\n龍が如く(現在停滞中)\n\n■好きなこと\n自作PC、ゲーミングデバイス、アニメ(特に主人公最強系)\n\n▼現在の自作PCスペック\nCPU intelCorei9-12900KF\nGPU NVIDIAGeForce RTX3070\nマザーボード TUFGAMINGZ690\n\n\n▽Vモデルお母さん\u3000一雀様\nX(旧Twitter) https://twitter.com/chunx2_v\nYouTube https://www.youtube.com/channel/@ninomae_suzume \n\n",
         profile_picture="https://yt3.googleusercontent.com/wETJ3BavWN59ncZzdbLvbeaD8ejs6IaFu4mx7XZPj4PaV3T7mjeupcC1uuc-912Qp3z1wiCL-Q=s900-c-k-c0x00ffffff-no-rj",
         links={
