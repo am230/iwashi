@@ -1,6 +1,6 @@
 [project]
 name = "iwashi"
-version = "3.0.8"
+version = "3.0.9"
 description = "Add your description here"
 authors = [
     { name = "am230", email = "111672334+am230@users.noreply.github.com" },
@@ -27,6 +27,9 @@ dev-dependencies = [
     "requests>=2.31.0",
     "pytest-xdist>=3.6.1",
 ]
+
+[tool.rye.scripts]
+gen_version = "python ./scripts/generate_version.py"
 
 [tool.hatch.metadata]
 allow-direct-references = true
