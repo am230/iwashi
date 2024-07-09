@@ -5,7 +5,7 @@ from tests.service_tester import _test_service
 
 
 @pytest.mark.asyncio
-async def test_itchio():
+async def test_kofi():
     service = Kofi()
     correct = Result(
         service=service,
@@ -23,4 +23,5 @@ async def test_itchio():
         correct,
         "https://ko-fi.com/sebastianlague",
         "https://ko-fi.com/sebastianlague/shop",
+        skip_empty=True,
     )
