@@ -1,6 +1,7 @@
 from typing import Iterable
 
 import aiohttp
+import pytest
 
 from iwashi.helper import BASE_HEADERS
 from iwashi.visitor import Context, FakeVisitor, Result, Service
@@ -38,7 +39,7 @@ async def _test_service(
     for url in urls:
         result = await service.visit_url(session, url)
         if skip_empty and result is None:
-            continue
+            pytest.skip(f"Failed to visit {url}")
         assert result, f"Failed to visit {url}"
         assert (
             result.url == correct_result.url
