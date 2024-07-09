@@ -2,6 +2,7 @@ from __future__ import annotations
 import re
 
 import bs4
+from loguru import logger
 
 
 from iwashi.helper import HTTP_REGEX, traverse
@@ -21,6 +22,9 @@ class Kofi(Service):
     async def visit(self, context: Context, id: str):
         url = f"https://ko-fi.com/{id}"
         res = await context.session.get(url)
+        if res.headers.get("Cf-Mitigated") == "challenge":
+            logger.warning(f"[Kofi] Detected Cloudflare challenge for {url}")
+            return
         res.raise_for_status()
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
         name = (
