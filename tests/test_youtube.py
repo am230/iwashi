@@ -13,7 +13,7 @@ async def test_youtube():
         url="https://www.youtube.com/@Femtanyl03",
         name="Femtanyl",
         description="Online! \nbusiness inquiries only: noellemansbridge@gmail.com\n",
-        profile_picture="https://yt3.googleusercontent.com/_h7l3oeXeWpUfONKDid-FgmSZ8sx9WLTgNn-uMtaD42twSqidbnjPoZI4wuGwhcTpi6OOxyFLw=s900-c-k-c0x00ffffff-no-rj",
+        profile_picture="https://yt3.googleusercontent.com/z0SZ4k98zIM8uJjWp7Pe9-DpnBbXAqmQdzkFc2dhPIRpNhYofrer_roxVueKzE8STTdtBZoI=s900-c-k-c0x00ffffff-no-rj",
         links={
             "https://femtanyl.bandcamp.com/",
             "https://twitter.com/femtanylll",
@@ -43,10 +43,29 @@ async def test_youtube():
             "https://www.amazon.jp/hz/wishlist/ls/13E56V4KYMVXR?ref_=wl_share",
         },
     )
+
     await _test_service(
         service,
         correct,
         "https://youtu.be/LnbSAhgwipA",
         "https://youtube.com/@二みかげ",
         "https://youtube.com/@sitanagamikage",
+    )
+
+    correct = Result(
+        service=service,
+        id="aoikuru_V",
+        url="https://www.youtube.com/@aoikuru_V",
+        name="あおいくる",
+        description="ポテト好きの狼系VTuber 🍟🍟 紺碧 紅琉(あおい くる)と申します！！ ゲーム(基本FPS)とかアニメとか色々好きです！！",
+        profile_picture="https://yt3.googleusercontent.com/VujV7acdLXhQ1zVdY3rH_yS1pk2aDiE_b1fgU4RdxyljuEchx638kx6l7K-VOlOBISHEiQeJ5Q=s900-c-k-c0x00ffffff-no-rj",
+        links={
+            "https://twitter.com/aoikuru_V",
+            "https://www.twitch.tv/aoikuru",
+        },
+    )
+    await _test_service(
+        service,
+        correct,
+        "https://www.youtube.com/live/IJCdnYoILFA",
     )
