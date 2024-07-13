@@ -13,7 +13,7 @@ async def test_twitter():
         url="https://twitter.com/VALIGHT1",
         name="VALIGHT_YT",
         description="Hi, I'm Valight, a creative Fortnite mappeur\nWelcome to my twiter account.\nCODE VALIGHT",
-        profile_picture="https://pbs.twimg.com/profile_images/1512100269831639049/R4AjwP-9_x96.jpg",
+        profile_picture="https://pbs.twimg.com/profile_images/1512100269831639049/R4AjwP-9_normal.jpg",
         links={"https://youtube.com/channel/UCDRIfKm06-e1dwSbnU1H9Rw"},
     )
     await _test_service(service, correct, "https://twitter.com/VALIGHT1")
