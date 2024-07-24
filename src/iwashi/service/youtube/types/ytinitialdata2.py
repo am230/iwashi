@@ -87,8 +87,25 @@ class Attribution(TypedDict):
     attributionViewModel: AttributionViewModel
 
 
+class CommandContext(TypedDict):
+    onTap: OnTap
+
+
+class RendererContext(TypedDict):
+    commandContext: CommandContext
+
+
+class DescriptionPreviewViewModel(TypedDict):
+    rendererContext: RendererContext
+
+
+class Description(TypedDict):
+    descriptionPreviewViewModel: DescriptionPreviewViewModel
+
+
 class PageHeaderViewModel(TypedDict):
     attribution: NotRequired[Attribution]
+    description: NotRequired[Description]
 
 
 class Content(TypedDict):

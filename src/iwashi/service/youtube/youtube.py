@@ -121,6 +121,7 @@ class Youtube(Service):
 
     async def get_token(self, data: Any) -> str | None:
         data2: ProfileRes2 = data
+
         if "pageHeaderRenderer" in data2["header"]:
             pageHeaderViewModel = data2["header"]["pageHeaderRenderer"]["content"][
                 "pageHeaderViewModel"
@@ -234,7 +235,7 @@ class Youtube(Service):
         for script in soup.select("script"):
             if script.string is None:
                 continue
-            match = re.search(r"ytInitialData\s*=\s*({.*?});", script.string)
+            match = re.search(r"ytInitialData\s*=\s*(\{.+\});", script.string)
             if match is not None:
                 data: ytinitialdata = json.loads(match.group(1))
                 break

@@ -40,7 +40,6 @@ async def test_youtube():
         profile_picture="https://yt3.googleusercontent.com/wETJ3BavWN59ncZzdbLvbeaD8ejs6IaFu4mx7XZPj4PaV3T7mjeupcC1uuc-912Qp3z1wiCL-Q=s900-c-k-c0x00ffffff-no-rj",
         links={
             "https://twitter.com/Sitanaga_Mikage",
-            "https://www.amazon.jp/hz/wishlist/ls/13E56V4KYMVXR?ref_=wl_share",
         },
     )
 
