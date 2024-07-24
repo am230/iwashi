@@ -21,5 +21,4 @@ async def test_fanbox():
         correct,
         "https://masahiro-emotion.fanbox.cc/",
         "https://masahiro-emotion.fanbox.cc/posts/7382756",
-        skip_empty=True,
     )
