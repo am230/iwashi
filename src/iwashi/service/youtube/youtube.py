@@ -128,6 +128,22 @@ class Youtube(Service):
             ]
             if "attribution" not in pageHeaderViewModel:
                 return None
+            # x.header.pageHeaderRenderer.content.pageHeaderViewModel.description.descriptionPreviewViewModel.rendererContext.commandContext.onTap.innertubeCommand.showEngagementPanelEndpoint.engagementPanel.engagementPanelSectionListRenderer.content.sectionListRenderer.contents[0].itemSectionRenderer.contents[0].continuationItemRenderer.continuationEndpoint.continuationCommand.token
+            # data2['header']['pageHeaderRenderer']['content']['pageHeaderViewModel']['description']['descriptionPreviewViewModel']['rendererContext']['commandContext']['onTap']['innertubeCommand']['showEngagementPanelEndpoint']['engagementPanel']['engagementPanelSectionListRenderer']['content']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents'][0]['continuationItemRenderer']['continuationEndpoint']['continuationCommand']['token']
+            if "description" in pageHeaderViewModel:
+                a = pageHeaderViewModel["description"]["descriptionPreviewViewModel"][
+                    "rendererContext"
+                ]["commandContext"]["onTap"]["innertubeCommand"][
+                    "showEngagementPanelEndpoint"
+                ]["engagementPanel"]["engagementPanelSectionListRenderer"]["content"][
+                    "sectionListRenderer"
+                ]["contents"]
+                for b in a:
+                    c = b["itemSectionRenderer"]["contents"]
+                    for d in c:
+                        endpoint = d["continuationItemRenderer"]["continuationEndpoint"]
+                        if endpoint["continuationCommand"]["token"]:
+                            return endpoint["continuationCommand"]["token"]
             suffix = pageHeaderViewModel["attribution"]["attributionViewModel"][
                 "suffix"
             ]
