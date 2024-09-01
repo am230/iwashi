@@ -12,7 +12,7 @@ async def test_tiktok():
         id="cocoyola",
         url="https://www.tiktok.com/@cocoyola",
         name="☀️🥂🫶🏻⭐️🍸",
-        description="-everything you’re looking for and more-\n\n🪸🌅🥂🫶🏻🍸",
+        description="🪸🌅🥂🫶🏻🍸",
         profile_picture=".tiktokcdn.com/tos-maliva-avt-0068/7325124622654341126~c5_1080x1080.jpeg",
         links=set(),
     )
