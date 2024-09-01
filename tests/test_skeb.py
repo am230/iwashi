@@ -13,7 +13,7 @@ async def test_skeb():
         url="https://skeb.jp/@bet_neb",
         name="ベトベト",
         description="いろんなフェチ持ってます❤︎（メインはにおいフェチ）\n性癖全開な絵を不定期で投稿してます\n気に入ったらフォローしてね！\n\n【skeb】https://skeb.jp/@bet_neb \n【fanbox】https://betbet.fanbox.cc/",
-        profile_picture="https://pbs.twimg.com/profile_images/1776504267714822144/ABLom6_w.jpg",
+        profile_picture="https://pbs.twimg.com/profile_images/1829489713310224385/5hgzLi7Y.jpg",
         links={
             "https://betbet.fanbox.cc",
             "https://www.pixiv.net/member.php?id=85335130",
