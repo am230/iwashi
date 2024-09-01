@@ -12,7 +12,7 @@ async def test_skeb():
         id="bet_neb",
         url="https://skeb.jp/@bet_neb",
         name="ベトベト",
-        description="女の子のにおいが大好きです❤︎\n【skeb】https://skeb.jp/@bet_neb 【fanbox】https://betbet.fanbox.cc/",
+        description="いろんなフェチ持ってます❤︎（メインはにおいフェチ）\n性癖全開な絵を不定期で投稿してます\n気に入ったらフォローしてね！\n\n【skeb】https://skeb.jp/@bet_neb \n【fanbox】https://betbet.fanbox.cc/",
         profile_picture="https://pbs.twimg.com/profile_images/1776504267714822144/ABLom6_w.jpg",
         links={
             "https://betbet.fanbox.cc",
