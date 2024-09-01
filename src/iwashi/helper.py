@@ -5,6 +5,7 @@ import re
 import string
 import time
 from typing import Any, Callable
+from urllib.parse import unquote
 
 from loguru import logger
 
@@ -31,6 +32,39 @@ def print_result(
         print_result(child, indent_level + 1, print)
 
 
+def assert_none[T](value: T | None, message: str) -> T:
+    if value is None:
+        raise ValueError(message)
+    return value
+
+
+class Option[T]:
+    def __init__(self, value: T | None):
+        self.value = value
+
+    def map[V](self, func: Callable[[T], V], default: V | None = None) -> Option[V]:
+        if self.value is None:
+            return Option(default)
+        value = func(self.value)
+        if value is None:
+            return Option(default)
+        return Option(value)
+
+    def get(self, default: T | None = None) -> T | None:
+        if self.value is None:
+            return default
+        return self.value
+
+    def unwrap(self, message: str) -> T:
+        if self.value is None:
+            raise ValueError(message)
+        return self.value
+
+
+def option[T](value: T | None) -> Option[T]:
+    return Option(value)
+
+
 def random_string(length: int) -> str:
     return "".join(random.choice(string.ascii_letters) for _ in range(length))
 
@@ -40,7 +74,7 @@ URL_NORMALIZE_REGEX = r"(?P<protocol>https?)?:?\/?\/?(?P<domain>[^.]+\.[^\/]+)(?
 
 def normalize_url(url: str, https: bool = True) -> str | None:
     url = str(url).strip()
-    match = re.match(URL_NORMALIZE_REGEX, url)
+    match = re.match(URL_NORMALIZE_REGEX, unquote(url))
     if match is None:
         return None
     protocol = match.group("protocol") or "https"

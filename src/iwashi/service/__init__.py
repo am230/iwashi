@@ -22,9 +22,10 @@ from .itchio import Itchio
 from .kofi import Kofi
 from .patreon import Patreon
 from .skeb import Skeb
-
+from .marshmallowqa import MarshmallowQA
 
 __all__ = [
+    "SERVICES",
     "Bandcamp",
     "Booth",
     "Fanbox",
@@ -49,6 +50,7 @@ __all__ = [
     "Kofi",
     "Patreon",
     "Skeb",
+    "MarshmallowQA",
 ]
 
 SERVICES = {
@@ -76,4 +78,5 @@ SERVICES = {
     Kofi(),
     Patreon(),
     Skeb(),
+    MarshmallowQA(),
 }
