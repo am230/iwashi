@@ -27,6 +27,7 @@ dev-dependencies = [
     "requests>=2.31.0",
     "pytest-xdist>=3.6.1",
 ]
+universal = true
 
 [tool.rye.scripts]
 gen_version = "python ./scripts/generate_version.py"
