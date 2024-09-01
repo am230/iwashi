@@ -11,7 +11,7 @@ from loguru import logger
 
 from .visitor import Result
 
-USER_AGENT = "Profile Link Generator (https://github.com/am230/iwashi)"
+USER_AGENT = "Profile Tree Generator (https://github.com/am230/iwashi)"
 BASE_HEADERS = {"User-Agent": USER_AGENT}
 HTTP_REGEX = "(https?://)?(www.)?"
 DEBUG = False
