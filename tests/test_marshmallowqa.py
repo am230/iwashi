@@ -11,7 +11,7 @@ async def test_marshmallowqa():
         service=service,
         id="wug0lycjx6zg13v",
         url="https://marshmallow-qa.com/wug0lycjx6zg13v",
-        name="プレミアム会員太郎",
+        name="一般山羊",
         description="プロフィール",
         profile_picture="https://marshmallow-qa.com/assets/initial-7df60e1334a612d6084881c5f4ea592ea678ba7b.png",
         links={
