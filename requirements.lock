@@ -20,9 +20,11 @@ beautifulsoup4==4.12.3
     # via bs4
 bs4==0.0.2
     # via iwashi
+chompjs==1.3.0
+    # via iwashi
 click==8.1.7
     # via iwashi
-colorama==0.4.6 ; platform_system == 'Windows' or sys_platform == 'win32'
+colorama==0.4.6 ; sys_platform == 'win32' or platform_system == 'Windows'
     # via click
     # via loguru
 frozenlist==1.4.1
