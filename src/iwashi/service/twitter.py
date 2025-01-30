@@ -10,7 +10,6 @@ import time
 from typing import Any, List, TypedDict
 
 import bs4
-import chompjs
 from loguru import logger
 import yarl
 
@@ -140,7 +139,7 @@ class Twitter(Service):
         # map to json
         endpoints: list[Endpoint] = []
         for export in exports:
-            obj = chompjs.parse_js_object(export)
+            obj = self._parse_export_to_dict(export)
             if (
                 "queryId" not in obj
                 or "operationName" not in obj
@@ -185,6 +184,36 @@ class Twitter(Service):
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
         self.response = soup
         return soup
+
+    def _parse_export_to_dict(self, export):
+        obj = {}
+        index = 0
+        length = len(export)
+        while index < length:
+            key_match = re.search(r"([a-zA-Z][a-zA-Z0-9]*)\s*\:", export[index:])
+            if not key_match:
+                break
+            key = key_match.group(1)
+            index += key_match.end()
+            value = None
+            if export[index] == "[":
+                end = export.find("]", index)
+                raw_value = export[index : end + 1]
+                value = json.loads(raw_value)
+                index = end + 1
+            elif export[index] == "{":
+                end = export.find("}", index)
+                raw_value = export[index : end + 1]
+                value = self._parse_export_to_dict(raw_value)
+                index = end + 1
+            elif export[index] in ["'", '"']:
+                end = export.find(export[index], index + 1)
+                value = export[index + 1 : end]
+                index = end + 1
+            else:
+                raise ValueError(f"Unexpected value: {export[index:]}")
+            obj[key] = value
+        return obj
 
     async def fetch_authorization(self, context: Context) -> str:
         if self.bearer_token:
