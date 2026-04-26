@@ -27,7 +27,7 @@ async def _test_service(
 ) -> None:
     # resolve id
     visitor = FakeVisitor()
-    session = aiohttp.ClientSession(headers=BASE_HEADERS)
+    session = aiohttp.ClientSession(headers=BASE_HEADERS, max_field_size=16384)
     for url in urls:
         context = Context(session=session, visitor=visitor)
         resolved_id = await service.resolve_id(context, url)

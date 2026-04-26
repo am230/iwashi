@@ -18,7 +18,7 @@ class Iwashi(Visitor):
         self.visited_urls: MutableSet[str] = set()
         self.visited_ids: MutableSet[Identifier] = set()
         self.tasks: List[asyncio.Task] = []
-        self.session = aiohttp.ClientSession(headers=BASE_HEADERS)
+        self.session = aiohttp.ClientSession(headers=BASE_HEADERS, max_field_size=16384)
 
     def add_service(self, service: Service) -> None:
         self.services.append(service)

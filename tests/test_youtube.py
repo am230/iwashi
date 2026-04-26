@@ -9,28 +9,25 @@ async def test_youtube():
     service = Youtube()
     correct = Result(
         service=service,
-        id="二みかげ",
-        url="https://www.youtube.com/@二みかげ",
-        name="二みかげ",
-        description="VTuberの二と書いて『したなが』、二みかげです！\nFPSからホラー(強制)を中心に配信してます。\nお喋り大好き、月曜日は定期雑談配信\n\n■メインゲーム\nAPEX\u3000-\u3000参加型・カジュアル・ランク\u3000-\nプレゼントされしまったホラーゲーム\n龍が如く(現在停滞中)\n\n■好きなこと\n自作PC、ゲーミングデバイス、アニメ(特に主人公最強系)\n\n▼現在の自作PCスペック\nCPU intelCorei9-12900KF\nGPU NVIDIAGeForce RTX3070\nマザーボード TUFGAMINGZ690\n\n\n▽Vモデルお母さん\u3000一雀様\nX(旧Twitter) https://twitter.com/chunx2_v\nYouTube https://www.youtube.com/channel/@ninomae_suzume \n\n",
-        profile_picture="https://yt3.googleusercontent.com/TyUENjbq-ea9k-6FpR11gOuSpUe7LjO_LL2uxH6S7z9DkiyrOp_QerFchciqF2NkJbSKqMi-=s900-c-k-c0x00ffffff-no-rj",
-        links={
-            "https://www.amazon.jp/hz/wishlist/ls/13E56V4KYMVXR?ref_=wl_share",
-            "https://twitter.com/Sitanaga_Mikage",
-        },
+        id="UC4QobU6STFB0P71PMvOGN5A",
+        url="https://www.youtube.com/channel/UC4QobU6STFB0P71PMvOGN5A",
+        name="jawed",
+        description="",
+        profile_picture="https://yt3.googleusercontent.com/uI3VE4PVqvCy0xnWLqMJnEzyBUm3T8VHOCp4ee-1RxdHqKXCdUE_qXYQnpf9AfuEoIPactVyDhM=s900-c-k-c0x00ffffff-no-rj",
+        links=set(),
     )
 
     await _test_service(
         service,
         correct,
-        "https://youtu.be/LnbSAhgwipA",
-        "https://youtube.com/@二みかげ",
+        "https://www.youtube.com/watch?v=jNQXAC9IVRw",
+        "https://www.youtube.com/@jawed/videos",
     )
 
     correct = Result(
         service=service,
-        id="aoikuru_V",
-        url="https://www.youtube.com/@aoikuru_V",
+        id="UCwYlcr-s1mr4FPzDxUMN9Vg",
+        url="https://www.youtube.com/channel/UCwYlcr-s1mr4FPzDxUMN9Vg",
         name="あおいくる",
         description="ポテト好きの狼系VTuber 🍟🍟 紺碧 紅琉(あおい くる)と申します！！ ゲーム(基本FPS)とかアニメとか色々好きです！！",
         profile_picture="https://yt3.googleusercontent.com/WnyUeD2enKopNvf3s-oy_DSXTS76WjkDM7EcZlpqaxL2TW3J4GWvFlmWe3Y9ZBE5ln45SoN4Xw=s900-c-k-c0x00ffffff-no-rj",
@@ -43,4 +40,19 @@ async def test_youtube():
         service,
         correct,
         "https://www.youtube.com/live/IJCdnYoILFA",
+    )
+
+    correct = Result(
+        service=service,
+        id="UCNkU0frQxqDUWYzDENP0Bzg",
+        url="https://www.youtube.com/channel/UCNkU0frQxqDUWYzDENP0Bzg",
+        name="Romolo Disconzi",
+        description="Stream de Axie Infinity, comentários sobre criptoativos e análise de times.\n",
+        profile_picture="https://yt3.googleusercontent.com/ERS1lb8FGu_dIxhUF0YLFZjhsSj6TSAcJEKXVr6GbOT04RQIMXout-3NYOpYjtQcLpzRjR5shg=s900-c-k-c0x00ffffff-no-rj",
+        links=set(),
+    )
+    await _test_service(
+        service,
+        correct,
+        "https://www.youtube.com/user/DisconziRomolo",
     )

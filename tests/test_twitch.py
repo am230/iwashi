@@ -9,15 +9,15 @@ async def test_twitch():
     service = Twitch()
     correct = Result(
         service=service,
-        id="thechief1114",
-        url="https://www.twitch.tv/thechief1114",
-        name="TheChief1114",
-        description="I stream.",
-        profile_picture="https://static-cdn.jtvnw.net/jtv_user_pictures/7a7f1681-f8ea-424d-bbce-38cac15e3328-profile_image-300x300.png",
-        links={"https://twitter.com/The_Chief1114"},
+        id="venzogames",
+        url="https://www.twitch.tv/venzogames",
+        name="venzogames",
+        description="As melhores dicas de Fortnite do YouTube Brasileiro!",
+        profile_picture="https://static-cdn.jtvnw.net/jtv_user_pictures/bf1acd78-493e-4b49-8a4f-7ad51c473881-profile_image-300x300.png",
+        links={
+            "https://www.youtube.com/user/DisconziRomolo",
+            "https://www.youtube.com/c/CryptoGamersBrasil",
+            "https://www.youtube.com/c/CarlosHung/featured",
+        },
     )
-    await _test_service(service, correct, "https://www.twitch.tv/thechief1114")
-
-# Test testing
-def test_testing():
-    assert True
+    await _test_service(service, correct, "https://www.twitch.tv/venzogames/about")
