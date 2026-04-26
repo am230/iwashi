@@ -1,12 +1,12 @@
 import pytest
-from iwashi.service.twitter import Twitter
+from iwashi.service.x import X
 from iwashi.visitor import Result
 from tests.service_tester import _test_service
 
 
 @pytest.mark.asyncio
 async def test_twitter():
-    service = Twitter()
+    service = X()
     correct = Result(
         service=service,
         id="VALIGHT1",

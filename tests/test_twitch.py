@@ -17,3 +17,7 @@ async def test_twitch():
         links={"https://twitter.com/The_Chief1114"},
     )
     await _test_service(service, correct, "https://www.twitch.tv/thechief1114")
+
+# Test testing
+def test_testing():
+    assert True

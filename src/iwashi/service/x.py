@@ -17,10 +17,10 @@ from iwashi.helper import HTTP_REGEX
 from iwashi.visitor import Context, Service
 
 
-class Twitter(Service):
+class X(Service):
     def __init__(self) -> None:
         super().__init__(
-            name="Twitter",
+            name="X",
             regex=re.compile(
                 HTTP_REGEX + r"(twitter|x)\.com/(#!/)?@?(?P<id>\w+)", re.IGNORECASE
             ),
@@ -52,7 +52,7 @@ class Twitter(Service):
                 continue
             break
         else:
-            raise ValueError("[Twitter] Could not find scripts")
+            raise ValueError("[X] Could not find scripts")
         scripts_map_regex = re.compile(
             r"{\s*[\"'][a-zA-Z0-9-_\s/\\.~]*[\"']\s*:\s*[\"'][a-zA-Z0-9-_\s/\\.~]*[\"'](?:\s*,\s*\s*[\"'][a-zA-Z0-9-_\s/\\.~]*[\"']\s*:\s*[\"'][a-zA-Z0-9-_\s/\\.~]*[\"'])*\s*}"
         )
@@ -64,7 +64,7 @@ class Twitter(Service):
             try:
                 obj = json.loads(script_map)
             except json.JSONDecodeError:
-                logger.warning(f"[Twitter] Could not parse script map: {script_map}")
+                logger.warning(f"[X] Could not parse script map: {script_map}")
                 continue
             for key in required:
                 if key in obj:
@@ -74,15 +74,15 @@ class Twitter(Service):
             self.scripts = obj
             break
         else:
-            raise ValueError("[Twitter] Could not find required scripts")
+            raise ValueError("[X] Could not find required scripts")
         return obj
 
     async def fetch_script(self, context: Context, script_name: str) -> str:
         scripts = await self.fetch_scripts(context)
         if script_name not in scripts:
-            raise ValueError(f"[Twitter] Could not find script: {script_name}")
+            raise ValueError(f"[X] Could not find script: {script_name}")
         if script_name not in scripts:
-            raise ValueError(f"[Twitter] Could not find script: {script_name}")
+            raise ValueError(f"[X] Could not find script: {script_name}")
         key = scripts[script_name]
         script_url = (
             f"https://abs.twimg.com/responsive-web/client-web/{script_name}.{key}a.js"
@@ -146,7 +146,7 @@ class Twitter(Service):
                 or "operationType" not in obj
                 or "metadata" not in obj
             ):
-                logger.warning(f"[Twitter] Unexpected export: {export}")
+                logger.warning(f"[X] Unexpected export: {export}")
                 continue
             endpoints.append(Endpoint(**obj))
         self.endpoints = {endpoint["operationName"]: endpoint for endpoint in endpoints}
@@ -437,7 +437,7 @@ class Twitter(Service):
         return await res.json()
 
     async def visit(self, context: Context, id: str) -> None:
-        url = f"https://twitter.com/{id}"
+        url = f"https://x.com/{id}"
         await self.setup_headers(context)
         await self.retrieve_endpoints(context)
 
@@ -449,7 +449,7 @@ class Twitter(Service):
         )
 
         if not info["data"]:
-            logger.warning(f"[Twitter] Could not find data for {url}")
+            logger.warning(f"[X] Could not find data for {url}")
             return
         result = info["data"]["user"]["result"]
         if result["__typename"] == "UserUnavailable":

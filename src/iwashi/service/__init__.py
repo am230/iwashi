@@ -14,7 +14,7 @@ from .soundcloud import Soundcloud
 from .tiktok import TikTok
 from .twitcasting import TwitCasting
 from .twitch import Twitch
-from .twitter import Twitter
+from .x import X
 from .youtube import Youtube
 from .spotify import Spotify
 from .github import Github
@@ -42,7 +42,7 @@ __all__ = [
     "TikTok",
     "TwitCasting",
     "Twitch",
-    "Twitter",
+    "X",
     "Youtube",
     "Spotify",
     "Github",
@@ -70,7 +70,7 @@ SERVICES = {
     TikTok(),
     TwitCasting(),
     Twitch(),
-    Twitter(),
+    X(),
     Youtube(),
     Spotify(),
     Github(),
