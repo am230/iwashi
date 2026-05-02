@@ -1,7 +1,7 @@
 [project]
 name = "iwashi"
-version = "3.2.0"
-description = "Add your description here"
+version = "3.2.1"
+description = "プロフィールの取得を一つのライブラリで可能にします。"
 authors = [
     { name = "am230", email = "111672334+am230@users.noreply.github.com" },
 ]

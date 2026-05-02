@@ -1,3 +1,3 @@
 # iwashi
 
-Describe your project here.
+プロフィールの取得を一つのライブラリで可能にします。
