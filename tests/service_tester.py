@@ -42,6 +42,9 @@ async def _test_service(
             pytest.skip(f"Failed to visit {url}")
         assert result, f"Failed to visit {url}"
         assert (
+            result.unique_id == correct_result.unique_id
+        ), f"Unique ID mismatch for {url} ({result.unique_id} != {correct_result.unique_id})"
+        assert (
             result.url == correct_result.url
         ), f"URL mismatch for {url} ({result.url} != {correct_result.url})"
         assert (

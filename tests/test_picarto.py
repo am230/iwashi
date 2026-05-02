@@ -9,7 +9,8 @@ async def test_picarto():
     service = Picarto()
     correct = Result(
         service=service,
-        id="1300",
+        id="RaptorARTStudios",
+        unique_id="1300",
         url="https://picarto.tv/RaptorARTStudios",
         name="RaptorARTStudios",
         description="Drawer of sexy anthro pinups, \nand i make custom adopts for sell as well!  \nCommissions are generally always open,",

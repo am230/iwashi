@@ -11,19 +11,6 @@ class Picarto(Service):
             regex=re.compile(HTTP_REGEX + r"picarto\.tv/(?P<id>\w+)", re.IGNORECASE),
         )
 
-    async def resolve_id(self, context: Context, url: str) -> str | None:
-        headers = {
-            "accept": "application/json, text/plain, */*",
-            "content-type": "application/json",
-        }
-
-        response = await context.session.get(
-            "https://ptvintern.picarto.tv/api/channel/profile/raptorartstudios",
-            headers=headers,
-        )
-        profile_response: ProfileResponse = await response.json()
-        return str(profile_response["data"]["id"])
-
     async def visit(self, context: Context, id: str):
         headers = {
             "accept": "application/json, text/plain, */*",
@@ -31,7 +18,7 @@ class Picarto(Service):
         }
 
         response = await context.session.get(
-            "https://ptvintern.picarto.tv/api/channel/profile/raptorartstudios",
+            f"https://ptvintern.picarto.tv/api/channel/profile/{id}",
             headers=headers,
         )
 
@@ -41,6 +28,7 @@ class Picarto(Service):
         context.create_result(
             self,
             id=id,
+            unique_id=str(profile["id"]),
             url=f"https://picarto.tv/{profile['name']}",
             name=profile["name"],
             description=profile["bio"],

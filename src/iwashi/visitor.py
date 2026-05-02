@@ -18,9 +18,10 @@ class Result:
     service: Service
     id: str
     url: str
-    name: Optional[str]
-    description: Optional[str]
-    profile_picture: Optional[str]
+    name: Optional[str] = None
+    unique_id: Optional[str] = None
+    description: Optional[str] = None
+    profile_picture: Optional[str] = None
 
     children: List[Result] = field(default_factory=list)
     links: Set[str] = field(default_factory=set)
@@ -69,15 +70,17 @@ class Context:
         service: Service,
         id: str,
         url: str,
-        name: Optional[str] = None,
-        description: Optional[str] = None,
-        profile_picture: Optional[str] = None,
+        unique_id: str | None = None,
+        name: str | None = None,
+        description: str | None = None,
+        profile_picture: str | None = None,
     ) -> Result:
         self.result = Result(
             service=service,
             id=id,
             url=url,
             name=name,
+            unique_id=unique_id,
             description=description,
             profile_picture=profile_picture,
         )
