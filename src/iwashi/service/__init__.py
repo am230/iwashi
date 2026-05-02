@@ -23,6 +23,7 @@ from .kofi import Kofi
 from .patreon import Patreon
 from .skeb import Skeb
 from .marshmallowqa import MarshmallowQA
+from .picarto import Picarto
 
 __all__ = [
     "SERVICES",
@@ -51,6 +52,7 @@ __all__ = [
     "Patreon",
     "Skeb",
     "MarshmallowQA",
+    "Picarto",
 ]
 
 SERVICES = {
@@ -79,4 +81,5 @@ SERVICES = {
     Patreon(),
     Skeb(),
     MarshmallowQA(),
+    Picarto(),
 }
