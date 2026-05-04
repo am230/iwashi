@@ -95,7 +95,7 @@ class Iwashi(Visitor):
                     "Referer": url,
                 },
                 allow_redirects=True,
-                timeout=5,
+                timeout=aiohttp.ClientTimeout(total=5),
             )
             res.raise_for_status()
         except aiohttp.ClientError as e:
@@ -126,3 +126,14 @@ def get_iwashi():
 async def tree(url: str, iwashi: Optional[Iwashi] = None) -> Optional[Result]:
     iwashi = iwashi or get_iwashi()
     return await iwashi.tree(url)
+
+
+async def visit(url: str, iwashi: Optional[Iwashi] = None) -> Optional[Result]:
+    iwashi = iwashi or get_iwashi()
+
+    async with aiohttp.ClientSession(
+        headers=BASE_HEADERS, max_field_size=16384
+    ) as session:
+        context = Context(session=session, visitor=iwashi)
+        context = context.create_context()
+        return await iwashi.visit(url, context)

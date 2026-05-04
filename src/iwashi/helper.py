@@ -7,6 +7,9 @@ import time
 from typing import Any, Callable
 from urllib.parse import unquote
 
+import aiohttp
+import bs4
+
 from loguru import logger
 
 from .visitor import Result
@@ -149,6 +152,24 @@ def cache(func: Callable[..., Any]) -> Callable[..., Any]:
         return result
 
     return wrapper
+
+
+async def fetch_html(session: aiohttp.ClientSession, url: str, **kwargs) -> str:
+    """Fetch HTML content from a URL."""
+    async with session.get(url, **kwargs) as res:
+        res.raise_for_status()
+        return await res.text()
+
+
+def parse_html(html: str) -> bs4.BeautifulSoup:
+    """Parse HTML content using BeautifulSoup."""
+    return bs4.BeautifulSoup(html, "html.parser")
+
+
+async def fetch_and_parse_html(session: aiohttp.ClientSession, url: str, **kwargs) -> bs4.BeautifulSoup:
+    """Fetch and parse HTML content from a URL."""
+    html = await fetch_html(session, url, **kwargs)
+    return parse_html(html)
 
 
 def cache_async(func: Callable[..., Any]) -> Callable[..., Any]:
