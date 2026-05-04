@@ -2,7 +2,7 @@ import pytest
 import requests
 from iwashi.service.nicovideo import Nicovideo
 from iwashi.visitor import Result
-from tests.service_tester import _test_service
+from tests.service_tester import service_test
 
 
 @pytest.mark.asyncio
@@ -28,4 +28,4 @@ async def test_nicovideo():
             "https://twitter.com/namapann",
         },
     )
-    await _test_service(service, correct, "https://www.nicovideo.jp/user/2008672")
+    await service_test(service, correct, "https://www.nicovideo.jp/user/2008672")

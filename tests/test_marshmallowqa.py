@@ -1,7 +1,7 @@
 import pytest
 from iwashi.service.marshmallowqa import MarshmallowQA
 from iwashi.visitor import Result
-from tests.service_tester import _test_service
+from tests.service_tester import service_test
 
 
 @pytest.mark.asyncio
@@ -19,7 +19,7 @@ async def test_marshmallowqa():
             "https://youtube.com/@2ji_han",
         },
     )
-    await _test_service(
+    await service_test(
         service,
         correct,
         "https://marshmallow-qa.com/wug0lycjx6zg13v",

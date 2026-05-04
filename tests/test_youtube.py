@@ -1,7 +1,7 @@
 import pytest
 from iwashi.service.youtube import Youtube
 from iwashi.visitor import Result
-from tests.service_tester import _test_service
+from tests.service_tester import service_test
 
 
 @pytest.mark.asyncio
@@ -10,6 +10,8 @@ async def test_youtube():
     correct = Result(
         service=service,
         id="UC4QobU6STFB0P71PMvOGN5A",
+        unique_id="UC4QobU6STFB0P71PMvOGN5A",
+        screen_id="jawed",
         url="https://www.youtube.com/channel/UC4QobU6STFB0P71PMvOGN5A",
         name="jawed",
         description="",
@@ -17,7 +19,7 @@ async def test_youtube():
         links=set(),
     )
 
-    await _test_service(
+    await service_test(
         service,
         correct,
         "https://www.youtube.com/watch?v=jNQXAC9IVRw",
@@ -27,6 +29,8 @@ async def test_youtube():
     correct = Result(
         service=service,
         id="UCwYlcr-s1mr4FPzDxUMN9Vg",
+        unique_id="UCwYlcr-s1mr4FPzDxUMN9Vg",
+        screen_id="aoikuru_V",
         url="https://www.youtube.com/channel/UCwYlcr-s1mr4FPzDxUMN9Vg",
         name="あおいくる",
         description="ポテト好きの狼系VTuber 🍟🍟 紺碧 紅琉(あおい くる)と申します！！ ゲーム(基本FPS)とかアニメとか色々好きです！！",
@@ -36,7 +40,7 @@ async def test_youtube():
             "https://twitter.com/aoikuru_V",
         },
     )
-    await _test_service(
+    await service_test(
         service,
         correct,
         "https://www.youtube.com/live/IJCdnYoILFA",
@@ -45,13 +49,15 @@ async def test_youtube():
     correct = Result(
         service=service,
         id="UCNkU0frQxqDUWYzDENP0Bzg",
+        unique_id="UCNkU0frQxqDUWYzDENP0Bzg",
+        screen_id="RomoloDisconzi",
         url="https://www.youtube.com/channel/UCNkU0frQxqDUWYzDENP0Bzg",
         name="Romolo Disconzi",
         description="Stream de Axie Infinity, comentários sobre criptoativos e análise de times.\n",
         profile_picture="https://yt3.googleusercontent.com/ERS1lb8FGu_dIxhUF0YLFZjhsSj6TSAcJEKXVr6GbOT04RQIMXout-3NYOpYjtQcLpzRjR5shg=s900-c-k-c0x00ffffff-no-rj",
         links=set(),
     )
-    await _test_service(
+    await service_test(
         service,
         correct,
         "https://www.youtube.com/user/DisconziRomolo",

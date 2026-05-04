@@ -1,7 +1,7 @@
 import pytest
 from iwashi.service.skeb import Skeb
 from iwashi.visitor import Result
-from tests.service_tester import _test_service
+from tests.service_tester import service_test
 
 
 @pytest.mark.asyncio
@@ -19,7 +19,7 @@ async def test_skeb():
             "http://Ko-fi.com/daydreamed",
         },
     )
-    await _test_service(
+    await service_test(
         service,
         correct,
         "https://skeb.jp/@Daydream_Ed",

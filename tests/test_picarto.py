@@ -1,7 +1,7 @@
 import pytest
 from iwashi.visitor import Result
 from iwashi.service.picarto import Picarto
-from tests.service_tester import _test_service
+from tests.service_tester import service_test
 
 
 @pytest.mark.asyncio
@@ -25,7 +25,7 @@ async def test_picarto():
             "https://www.facebook.com/RaptorArtStudios/?ref=bookmarks",
         },
     )
-    await _test_service(
+    await service_test(
         service,
         correct,
         "https://picarto.tv/RaptorARTStudios",

@@ -1,7 +1,7 @@
 import pytest
 from iwashi.service.twitch import Twitch
 from iwashi.visitor import Result
-from tests.service_tester import _test_service
+from tests.service_tester import service_test
 
 
 @pytest.mark.asyncio
@@ -20,4 +20,4 @@ async def test_twitch():
             "https://www.youtube.com/c/CarlosHung/featured",
         },
     )
-    await _test_service(service, correct, "https://www.twitch.tv/venzogames/about")
+    await service_test(service, correct, "https://www.twitch.tv/venzogames/about")

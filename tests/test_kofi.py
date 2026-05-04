@@ -1,7 +1,7 @@
 import pytest
 from iwashi.service.kofi import Kofi
 from iwashi.visitor import Result
-from tests.service_tester import _test_service
+from tests.service_tester import service_test
 
 
 @pytest.mark.asyncio
@@ -18,7 +18,7 @@ async def test_kofi():
             "https://www.youtube.com/@SebastianLague",
         },
     )
-    await _test_service(
+    await service_test(
         service,
         correct,
         "https://ko-fi.com/sebastianlague",

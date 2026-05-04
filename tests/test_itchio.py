@@ -1,7 +1,7 @@
 import pytest
 from iwashi.service.itchio import Itchio
 from iwashi.visitor import Result
-from tests.service_tester import _test_service
+from tests.service_tester import service_test
 
 
 @pytest.mark.asyncio
@@ -20,7 +20,7 @@ async def test_itchio():
             "https://www.youtube.com/channel/UCmtyQOKKmrMVaKuRXz02jbQ",
         },
     )
-    await _test_service(
+    await service_test(
         service,
         correct,
         "https://itch.io/profile/sebastian",

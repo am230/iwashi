@@ -1,7 +1,7 @@
 import pytest
 from iwashi.service.note import Note
 from iwashi.visitor import Result
-from tests.service_tester import _test_service
+from tests.service_tester import service_test
 
 
 @pytest.mark.asyncio
@@ -16,4 +16,4 @@ async def test_note():
         profile_picture="https://assets.st-note.com/production/uploads/images/127793817/profile_28ad4f05e11a0fc2d9117a7e530bc6bf.jpg?fit=bounds&format=jpeg&quality=85&width=330",
         links={"https://twitter.com/Palworld_JP"},
     )
-    await _test_service(service, correct, "https://note.com/pocketpair")
+    await service_test(service, correct, "https://note.com/pocketpair")

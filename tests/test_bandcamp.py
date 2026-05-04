@@ -1,7 +1,7 @@
 import pytest
 from iwashi.visitor import Result
 from iwashi.service.bandcamp import Bandcamp
-from tests.service_tester import _test_service
+from tests.service_tester import service_test
 
 
 @pytest.mark.asyncio
@@ -16,4 +16,4 @@ async def test_bandcamp():
         profile_picture="https://f4.bcbits.com/img/0032604396_21.jpg",
         links={"http://toxicholocaust.com"},
     )
-    await _test_service(service, correct, "https://toxicholocaust.bandcamp.com")
+    await service_test(service, correct, "https://toxicholocaust.bandcamp.com")

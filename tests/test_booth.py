@@ -1,7 +1,7 @@
 import pytest
 from iwashi.visitor import Result
 from iwashi.service.booth import Booth
-from tests.service_tester import _test_service
+from tests.service_tester import service_test
 
 
 @pytest.mark.asyncio
@@ -20,7 +20,7 @@ async def test_booth():
             "https://www.pixiv.net/users/161480",
         },
     )
-    await _test_service(
+    await service_test(
         service,
         correct,
         "https://miluda.booth.pm/",

@@ -1,11 +1,11 @@
 import json
 import re
-from typing import Any
+from typing import Any, Optional
 from urllib import parse
 
 import bs4
 
-from iwashi.helper import HTTP_REGEX, normalize_url, traverse
+from iwashi.helper import HTTP_REGEX, normalize_url
 from iwashi.service.youtube.types.ytinitialdata2 import ProfileRes2
 from iwashi.service.youtube.types.ytinitialdata3 import ProfileRes3
 from iwashi.visitor import Context, Service
@@ -13,8 +13,8 @@ from iwashi.visitor import Context, Service
 from .types import thumbnails, ytinitialdata
 from .types.about import AboutRes
 
-VANITY_ID_REGEX = re.compile(r"youtube.com/@(?P<id>[^/]+)")
-CHANNEL_ID_REGEX = re.compile(r"youtube.com/channel/(?P<id>[^/]+)")
+VANITY_ID_REGEX = re.compile(r"youtube\.com/@(?P<id>[^/]+)")
+CHANNEL_ID_REGEX = re.compile(r"youtube\.com/channel/(?P<id>[^/]+)")
 
 
 class Youtube(Service):
@@ -26,37 +26,44 @@ class Youtube(Service):
             ),
         )
 
-    async def resolve_id(self, context: Context, url: str) -> str | None:
+    async def resolve_id(self, context: Context, url: str) -> Optional[str]:
         normalized_url = normalize_url(url)
-        if normalized_url is None:
+        if not normalized_url:
             return None
+
         uri = parse.urlparse(normalized_url)
         if uri.hostname == "youtu.be":
             return await self._channel_by_oembed(context, uri.path[1:])
-        type = next(filter(None, uri.path.split("/")))
-        if type.startswith("@"):
-            return await self._id_from_vanity_url(context, url)
-        if type == "playlist":
+
+        path_parts = list(filter(None, uri.path.split("/")))
+        if not path_parts:
             return None
-        if type == "watch":
-            return await self._channel_by_oembed(
-                context, parse.parse_qs(uri.query)["v"][0]
-            )
-        if type == "live":
-            return await self._channel_by_oembed(context, uri.path.split("/")[-1])
-        if type == "shorts":
-            video_id = uri.path.split("/")[-1]
-            return await self._channel_by_oembed(context, video_id)
-        if type in {"channel", "user", "c"}:
+
+        url_type = path_parts[0]
+
+        if url_type.startswith("@"):
+            return await self._id_from_vanity_url(context, url)
+        if url_type == "playlist":
+            return None
+        if url_type == "watch":
+            query_v = parse.parse_qs(uri.query).get("v")
+            if query_v:
+                return await self._channel_by_oembed(context, query_v[0])
+        if url_type in {"live", "shorts"}:
+            return await self._channel_by_oembed(context, path_parts[-1])
+        if url_type in {"channel", "user", "c"}:
             return await self._channel_by_url(context, url)
-        if len(uri.path) > 1:
-            maybe_vanity = uri.path.split("/")[1]
+
+        if len(path_parts) > 1:
+            maybe_vanity = path_parts[1]
             return await self._id_from_vanity_url(
                 context, f"https://youtube.com/@{maybe_vanity}"
             )
         return None
 
-    async def _channel_by_oembed(self, context: Context, video_id: str) -> str | None:
+    async def _channel_by_oembed(
+        self, context: Context, video_id: str
+    ) -> Optional[str]:
         res = await context.session.get(
             "https://www.youtube.com/oembed",
             params={
@@ -66,151 +73,200 @@ class Youtube(Service):
         )
         if not res.ok:
             return None
+
         data = await res.json()
         author_url = data.get("author_url")
-        if author_url is None:
+        if not author_url:
             return None
+
         return await self._id_from_vanity_url(context, author_url)
 
-    async def _channel_by_url(self, context: Context, url: str) -> str | None:
+    async def _channel_by_url(self, context: Context, url: str) -> Optional[str]:
         res = await context.session.get(url)
         res.raise_for_status()
+
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
         data = self.extract_initial_data(soup)
         vanity_url = data["metadata"]["channelMetadataRenderer"]["channelUrl"]
+
         return self._parse_channel_id(vanity_url)
 
-    def _parse_channel_id(self, channel_url: str) -> str | None:
+    def _parse_channel_id(self, channel_url: str) -> Optional[str]:
         match = CHANNEL_ID_REGEX.search(channel_url)
-        if match is None:
+        return parse.unquote(match.group("id")) if match else None
+
+    def _vanity_id_from_url(self, url: str) -> str | None:
+        match = VANITY_ID_REGEX.search(url)
+        if not match:
             return None
         return parse.unquote(match.group("id"))
 
-    async def _id_from_vanity_url(self, context: Context, url: str) -> str | None:
-        match = VANITY_ID_REGEX.search(url)
-        if match is None:
+    async def _id_from_vanity_url(self, context: Context, url: str) -> Optional[str]:
+        vanity_id = self._vanity_id_from_url(url)
+        if vanity_id is None:
             return None
-        vanity_id = parse.unquote(match.group("id"))
         res = await context.session.get(f"https://www.youtube.com/@{vanity_id}")
         res.raise_for_status()
+
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
         data = self.extract_initial_data(soup)
         channel_url = data["metadata"]["channelMetadataRenderer"]["channelUrl"]
-        channel_id = self._parse_channel_id(channel_url)
-        return channel_id
 
-    def parse_thumbnail(self, thumbnails: thumbnails) -> str:
-        size = 0
-        url: str | None = None
-        for thumbnail in thumbnails["thumbnails"]:
-            if thumbnail["width"] > size:
-                size = thumbnail["width"]
-                url = thumbnail["url"]
-        if url is None:
+        return self._parse_channel_id(channel_url)
+
+    def parse_thumbnail(self, thumbnails_data: thumbnails) -> str:
+        """最大の幅を持つサムネイルのURLを取得する"""
+        thumb_list = thumbnails_data.get("thumbnails", [])
+        if not thumb_list:
             raise RuntimeError("Thumbnail not found")
-        return url
 
-    async def get_token(self, data: Any) -> str | None:
-        data2: ProfileRes2 = data
+        best_thumb = max(thumb_list, key=lambda t: t.get("width", 0))
+        return best_thumb["url"]
 
-        if "pageHeaderRenderer" in data2["header"]:
-            pageHeaderViewModel = data2["header"]["pageHeaderRenderer"]["content"][
-                "pageHeaderViewModel"
-            ]
-            if "attribution" not in pageHeaderViewModel:
-                return None
-            # x.header.pageHeaderRenderer.content.pageHeaderViewModel.description.descriptionPreviewViewModel.rendererContext.commandContext.onTap.innertubeCommand.showEngagementPanelEndpoint.engagementPanel.engagementPanelSectionListRenderer.content.sectionListRenderer.contents[0].itemSectionRenderer.contents[0].continuationItemRenderer.continuationEndpoint.continuationCommand.token
-            # data2['header']['pageHeaderRenderer']['content']['pageHeaderViewModel']['description']['descriptionPreviewViewModel']['rendererContext']['commandContext']['onTap']['innertubeCommand']['showEngagementPanelEndpoint']['engagementPanel']['engagementPanelSectionListRenderer']['content']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents'][0]['continuationItemRenderer']['continuationEndpoint']['continuationCommand']['token']
-            if "description" in pageHeaderViewModel:
-                a = pageHeaderViewModel["description"]["descriptionPreviewViewModel"][
-                    "rendererContext"
-                ]["commandContext"]["onTap"]["innertubeCommand"][
+    async def get_token(self, data: Any) -> Optional[str]:
+        header = data.get("header", {})
+        if "pageHeaderRenderer" in header:
+            return self._get_token_from_page_header(data)
+        elif "c4TabbedHeaderRenderer" in header:
+            return self._get_token_from_c4_header(data)
+        return None
+
+    def _extract_token_from_endpoints(self, contents: list) -> Optional[str]:
+        """深くネストされた構造からcontinuationTokenを抽出するヘルパー"""
+        for item in contents:
+            sections = item.get("itemSectionRenderer", {}).get("contents", [])
+            for section in sections:
+                endpoint = section.get("continuationItemRenderer", {}).get(
+                    "continuationEndpoint", {}
+                )
+
+                # トークンが直接存在する場合
+                token = endpoint.get("continuationCommand", {}).get("token")
+                if token:
+                    return token
+
+                # API URLのパスから判別する場合
+                api_url = (
+                    endpoint.get("commandMetadata", {})
+                    .get("webCommandMetadata", {})
+                    .get("apiUrl", "")
+                )
+                if api_url.startswith("/youtubei/v1/browse"):
+                    return endpoint.get("continuationCommand", {}).get("token")
+        return None
+
+    def _get_token_from_page_header(self, data: ProfileRes2) -> Optional[str]:
+        view_model = (
+            data.get("header", {})
+            .get("pageHeaderRenderer", {})
+            .get("content", {})
+            .get("pageHeaderViewModel", {})
+        )
+
+        # 1. description経由での探索
+        try:
+            contents = (
+                view_model.get("description", {})
+                .get("descriptionPreviewViewModel", {})
+                .get("rendererContext", {})
+                .get("commandContext", {})
+                .get("onTap", {})
+                .get("innertubeCommand", {})
+                .get("showEngagementPanelEndpoint", {})
+                .get("engagementPanel", {})
+                .get("engagementPanelSectionListRenderer", {})
+                .get("content", {})
+                .get("sectionListRenderer", {})
+                .get("contents", [])
+            )
+            token = self._extract_token_from_endpoints(contents)
+            if token:
+                return token
+        except KeyError:
+            pass
+
+        # 2. attribution経由での探索
+        try:
+            command_runs = (
+                view_model.get("attribution", {})
+                .get("attributionViewModel", {})
+                .get("suffix", {})
+                or {}
+            ).get("commandRuns", {})
+            for run in command_runs:
+                contents = run["onTap"]["innertubeCommand"][
                     "showEngagementPanelEndpoint"
                 ]["engagementPanel"]["engagementPanelSectionListRenderer"]["content"][
                     "sectionListRenderer"
                 ]["contents"]
-                for b in a:
-                    c = b["itemSectionRenderer"]["contents"]
-                    for d in c:
-                        endpoint = d["continuationItemRenderer"]["continuationEndpoint"]
-                        if endpoint["continuationCommand"]["token"]:
-                            return endpoint["continuationCommand"]["token"]
-            suffix = pageHeaderViewModel["attribution"]["attributionViewModel"][
-                "suffix"
-            ]
-            if not suffix:
-                return None
-            for a in suffix["commandRuns"]:
-                for b in a["onTap"]["innertubeCommand"]["showEngagementPanelEndpoint"][
-                    "engagementPanel"
-                ]["engagementPanelSectionListRenderer"]["content"][
-                    "sectionListRenderer"
-                ]["contents"]:
-                    for c in b["itemSectionRenderer"]["contents"]:
-                        endpoint = c["continuationItemRenderer"]["continuationEndpoint"]
-                        if endpoint["commandMetadata"]["webCommandMetadata"][
-                            "apiUrl"
-                        ].startswith("/youtubei/v1/browse"):
-                            return endpoint["continuationCommand"]["token"]
-        else:
-            data3: ProfileRes3 = data
-            c4TabbedHeaderRenderer = data3["header"]["c4TabbedHeaderRenderer"]
-            if "headerLinks" not in c4TabbedHeaderRenderer:
-                return None
-            channelHeaderLinksViewModel = c4TabbedHeaderRenderer["headerLinks"][
+                token = self._extract_token_from_endpoints(contents)
+                if token:
+                    return token
+        except KeyError:
+            pass
+
+        return None
+
+    def _get_token_from_c4_header(self, data: ProfileRes3) -> Optional[str]:
+        try:
+            command_runs = data["header"]["c4TabbedHeaderRenderer"]["headerLinks"][
                 "channelHeaderLinksViewModel"
-            ]
-            if "more" not in channelHeaderLinksViewModel:
-                return None
-            for a in channelHeaderLinksViewModel["more"]["commandRuns"]:
-                for b in a["onTap"]["innertubeCommand"]["showEngagementPanelEndpoint"][
-                    "engagementPanel"
-                ]["engagementPanelSectionListRenderer"]["content"][
+            ]["more"]["commandRuns"]
+            for run in command_runs:
+                contents = run["onTap"]["innertubeCommand"][
+                    "showEngagementPanelEndpoint"
+                ]["engagementPanel"]["engagementPanelSectionListRenderer"]["content"][
                     "sectionListRenderer"
-                ]["contents"]:
-                    for c in b["itemSectionRenderer"]["contents"]:
-                        endpoint = c["continuationItemRenderer"]["continuationEndpoint"]
-                        if endpoint["commandMetadata"]["webCommandMetadata"][
-                            "apiUrl"
-                        ].startswith("/youtubei/v1/browse"):
-                            return endpoint["continuationCommand"]["token"]
+                ]["contents"]
+                token = self._extract_token_from_endpoints(contents)
+                if token:
+                    return token
+        except KeyError:
+            pass
+
         return None
 
     def parse_redirect(self, url: str) -> str:
         uri = parse.urlparse(url)
-        if uri.hostname != "www.youtube.com":
-            return url
-        if uri.path == "/redirect":
-            return parse.parse_qs(uri.query)["q"][0]
+        if uri.hostname == "www.youtube.com" and uri.path == "/redirect":
+            query_q = parse.parse_qs(uri.query).get("q")
+            if query_q:
+                return query_q[0]
         return url
 
     async def visit(self, context: Context, id: str):
         url = f"https://www.youtube.com/channel/{id}"
         res = await context.session.get(url)
-
         res.raise_for_status()
+
         soup = bs4.BeautifulSoup(await res.text(), "html.parser")
         data = self.extract_initial_data(soup)
+        metadata = data["metadata"]["channelMetadataRenderer"]
+
         channel_id = await self._id_from_vanity_url(
-            context, data["metadata"]["channelMetadataRenderer"]["vanityChannelUrl"]
+            context, metadata["vanityChannelUrl"]
         )
-        name = data["metadata"]["channelMetadataRenderer"]["title"]
-        description = data["metadata"]["channelMetadataRenderer"]["description"]
-        profile_picture = self.parse_thumbnail(
-            data["metadata"]["channelMetadataRenderer"]["avatar"]
-        )
+
+        screen_id = self._vanity_id_from_url(metadata["vanityChannelUrl"])
+
         context.create_result(
             self,
             id=id,
+            unique_id=id,
+            screen_id=screen_id,
             url=f"https://www.youtube.com/channel/{channel_id}",
-            name=name,
-            description=description,
-            profile_picture=profile_picture,
+            name=metadata["title"],
+            description=metadata["description"],
+            profile_picture=self.parse_thumbnail(metadata["avatar"]),
         )
+
         token = await self.get_token(data)
-        if token is None:
-            return
-        about_res = await context.session.post(
+        if token:
+            await self._fetch_and_enqueue_about_links(context, token)
+
+    async def _fetch_and_enqueue_about_links(self, context: Context, token: str):
+        """概要欄のリンクを取得し、キューに追加する"""
+        res = await context.session.post(
             "https://www.youtube.com/youtubei/v1/browse",
             json={
                 "context": {
@@ -223,29 +279,46 @@ class Youtube(Service):
                 "continuation": token,
             },
         )
-        about_res.raise_for_status()
-        about_data: AboutRes = await about_res.json()
-        links: list[str] = []
-        for a in about_data["onResponseReceivedEndpoints"]:
-            for b in a["appendContinuationItemsAction"]["continuationItems"]:
-                for c in b["aboutChannelRenderer"]["metadata"]["aboutChannelViewModel"][
-                    "links"
-                ]:
-                    for d in c["channelExternalLinkViewModel"]["link"]["commandRuns"]:
-                        url = d["onTap"]["innertubeCommand"]["urlEndpoint"]["url"]
-                        links.append(url)
+        res.raise_for_status()
+        about_data: AboutRes = await res.json()
 
-        for link in links:
-            context.enqueue_visit(self.parse_redirect(link))
+        try:
+            for endpoint in about_data.get("onResponseReceivedEndpoints", []):
+                for item in endpoint.get("appendContinuationItemsAction", {}).get(
+                    "continuationItems", []
+                ):
+                    links_data = (
+                        item.get("aboutChannelRenderer", {})
+                        .get("metadata", {})
+                        .get("aboutChannelViewModel", {})
+                        .get("links", [])
+                    )
+
+                    for link_obj in links_data:
+                        for run in (
+                            link_obj.get("channelExternalLinkViewModel", {})
+                            .get("link", {})
+                            .get("commandRuns", [])
+                        ):
+                            extracted_url = (
+                                run.get("onTap", {})
+                                .get("innertubeCommand", {})
+                                .get("urlEndpoint", {})
+                                .get("url")
+                            )
+                            if extracted_url:
+                                context.enqueue_visit(
+                                    self.parse_redirect(extracted_url)
+                                )
+        except Exception:
+            # データ構造がない・変更された場合はスキップ
+            pass
 
     def extract_initial_data(self, soup: bs4.BeautifulSoup) -> ytinitialdata:
         for script in soup.select("script"):
-            if script.string is None:
+            if not script.string:
                 continue
             match = re.search(r"ytInitialData\s*=\s*(\{.+\});", script.string)
-            if match is not None:
-                data: ytinitialdata = json.loads(match.group(1))
-                break
-        else:
-            raise RuntimeError("ytInitialData not found")
-        return data
+            if match:
+                return json.loads(match.group(1))
+        raise RuntimeError("ytInitialData not found")

@@ -1,7 +1,7 @@
 import pytest
 from iwashi.service.soundcloud import Soundcloud
 from iwashi.visitor import Result
-from tests.service_tester import _test_service
+from tests.service_tester import service_test
 
 
 @pytest.mark.asyncio
@@ -18,7 +18,7 @@ async def test_soundcloud():
             "http://kohada.ushimairi.com/",
         },
     )
-    await _test_service(
+    await service_test(
         service,
         correct,
         "https://soundcloud.com/speder2",

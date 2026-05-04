@@ -7,7 +7,7 @@ from iwashi.helper import BASE_HEADERS
 from iwashi.visitor import Context, FakeVisitor, Result, Service
 
 
-def iterable_eq(a: Iterable, b: Iterable) -> bool:
+def iterable_eq[T](a: Iterable[T], b: Iterable[T]) -> bool:
     # Compare two iterables for equality
     # ignoring the order of elements
     for item in a:
@@ -19,7 +19,7 @@ def iterable_eq(a: Iterable, b: Iterable) -> bool:
     return True
 
 
-async def _test_service(
+async def service_test(
     service: Service,
     correct_result: Result,
     *urls: str,
@@ -44,6 +44,9 @@ async def _test_service(
         assert (
             result.unique_id == correct_result.unique_id
         ), f"Unique ID mismatch for {url} ({result.unique_id} != {correct_result.unique_id})"
+        assert (
+            result.screen_id == correct_result.screen_id
+        ), f"Screen ID mismatch for {url} ({result.screen_id} != {correct_result.screen_id})"
         assert (
             result.url == correct_result.url
         ), f"URL mismatch for {url} ({result.url} != {correct_result.url})"

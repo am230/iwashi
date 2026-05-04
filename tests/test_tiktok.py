@@ -1,7 +1,7 @@
 import pytest
 from iwashi.service.tiktok import TikTok
 from iwashi.visitor import Result
-from tests.service_tester import _test_service
+from tests.service_tester import service_test
 
 
 @pytest.mark.asyncio
@@ -16,7 +16,7 @@ async def test_tiktok():
         profile_picture=".tiktokcdn.com/tos-maliva-avt-0068/7325124622654341126~c5_1080x1080.jpeg",
         links=set(),
     )
-    await _test_service(
+    await service_test(
         service,
         correct,
         "https://www.tiktok.com/@cocoyola?lang=ja-JP",

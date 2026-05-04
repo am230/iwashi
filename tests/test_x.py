@@ -1,7 +1,7 @@
 import pytest
 from iwashi.service.x import X
 from iwashi.visitor import Result
-from tests.service_tester import _test_service
+from tests.service_tester import service_test
 
 
 @pytest.mark.asyncio
@@ -16,4 +16,4 @@ async def test_twitter():
         profile_picture="https://pbs.twimg.com/profile_images/1512100269831639049/R4AjwP-9_normal.jpg",
         links={"https://youtube.com/channel/UCDRIfKm06-e1dwSbnU1H9Rw"},
     )
-    await _test_service(service, correct, "https://twitter.com/VALIGHT1")
+    await service_test(service, correct, "https://twitter.com/VALIGHT1")

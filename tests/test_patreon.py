@@ -3,7 +3,7 @@ import requests
 from iwashi.helper import BASE_HEADERS
 from iwashi.service.patreon import Patreon
 from iwashi.visitor import Result
-from tests.service_tester import _test_service
+from tests.service_tester import service_test
 
 
 @pytest.mark.asyncio
@@ -30,7 +30,7 @@ async def test_patreon():
             "https://youtube.com/channel/UCmtyQOKKmrMVaKuRXz02jbQ",
         },
     )
-    await _test_service(
+    await service_test(
         service,
         correct,
         "https://www.patreon.com/sebastianlague",

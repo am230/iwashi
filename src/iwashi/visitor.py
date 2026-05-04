@@ -20,10 +20,11 @@ class Result:
     url: str
     name: Optional[str] = None
     unique_id: Optional[str] = None
+    screen_id: Optional[str] = None
     description: Optional[str] = None
     profile_picture: Optional[str] = None
 
-    children: List[Result] = field(default_factory=list)
+    children: list[Result] = field(default_factory=list)
     links: Set[str] = field(default_factory=set)
 
     def to_list(self) -> List[Result]:
@@ -71,6 +72,7 @@ class Context:
         id: str,
         url: str,
         unique_id: str | None = None,
+        screen_id: str | None = None,
         name: str | None = None,
         description: str | None = None,
         profile_picture: str | None = None,
@@ -81,6 +83,7 @@ class Context:
             url=url,
             name=name,
             unique_id=unique_id,
+            screen_id=screen_id,
             description=description,
             profile_picture=profile_picture,
         )
@@ -114,11 +117,11 @@ class Service(abc.ABC):
         cls.throttle = Throttle(timedelta(seconds=5))
         return super().__init_subclass__()
 
-    def __init__(self, name: str, regex: re.Pattern):
+    def __init__(self, name: str, regex: re.Pattern[str]):
         self.name = name
         self.regex = regex
 
-    def match(self, url, context: Context) -> Optional[re.Match]:
+    def match(self, url: str, context: Context) -> Optional[re.Match[str]]:
         return self.regex.match(url)
 
     async def resolve_id(self, context: Context, url: str) -> str | None:

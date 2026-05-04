@@ -12,4 +12,6 @@
         "tests",
     ],
     "python.testing.cwd": "${workspaceFolder}",
+    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.autoImportCompletions": true,
 }
